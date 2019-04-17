@@ -5,18 +5,9 @@ authors = ["mich101mich <mich101mich@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-piston2d-graphics = "0.30.0"
 
-[target.'cfg(cargo_web)'.dependencies]
-stdweb = "0.4.15"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+stdweb = "0.4.16"
 
-[target.'cfg(not(cargo_web))'.dependencies]
-piston_window = "0.89.0"
-
-[[bin]]
-name = "web_game"
-path = "src/entry_web.rs"
-
-[[bin]]
-name = "game"
-path = "src/entry_desktop.rs"
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+sfml = "0.14.0"

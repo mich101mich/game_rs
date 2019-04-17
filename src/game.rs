@@ -1,25 +1,24 @@
-use graphics::*;
+use super::{Backend, Color, log, BackendStyle};
 
 pub struct Game {
-	line: [f64; 4],
+	line_start: (f32, f32),
+	line_end: (f32, f32)
 }
 
 impl Game {
 	pub fn new() -> Self {
+		log!("Starting...");
 		Game {
-			line: [100.0, 200.0, 300.0, 300.0],
+			line_start: (100.0, 200.0), line_end: (300.0, 300.0),
 		}
 	}
 
-	pub fn draw<T: Graphics>(&mut self, context: Context, backend: &mut T) {
-		//log!("{:?}", self.line);
+	pub fn draw(&mut self, backend: &mut Backend) {
+		backend.fill(Color::rgb(128, 128, 128));
 
-		clear([0.5, 0.5, 0.5, 1.0], backend);
+		self.line_start.0 += self.line_start.1 * 0.1;
+		self.line_start.1 += -self.line_start.0 * 0.1;
 
-		self.line[0] += self.line[1] * 0.1;
-		self.line[1] += -self.line[0] * 0.1;
-
-		let line = Line::new([0.0, 1.0, 0.0, 1.0], 10.0);
-		line.draw(self.line, &context.draw_state, context.transform, backend);
+		backend.draw_line(self.line_start, self.line_end, 3.0, Color::rgb(255, 0, 0));
 	}
 }

@@ -8,9 +8,7 @@
 			"type": "shell",
 			"command": "cargo",
 			"args": [
-				"build",
-				"--bin",
-				"game"
+				"build"
 			],
 			"problemMatcher": [],
 			"group": "build"
@@ -22,9 +20,7 @@
 			"args": [
 				"web",
 				"build",
-				"--release",
-				"--bin",
-				"web_game"
+				"--release"
 			],
 			"problemMatcher": [],
 			"group": "build"
