@@ -1,4 +1,4 @@
-use super::BackendStyle;
+use super::{BackendStyle, TEXT_SIZE};
 use crate::Game;
 
 use stdweb::{unstable::TryInto, web::html_element::CanvasElement, web::*};
@@ -22,7 +22,7 @@ fn update(time: f64) {
 }
 
 pub struct Backend {
-	base: CanvasRenderingContext2d,
+	context: CanvasRenderingContext2d,
 	width: u32,
 	height: u32,
 }
@@ -43,19 +43,17 @@ impl BackendStyle for Backend {
 
 		unsafe {
 			BACKEND = Some(Backend {
-				base: canvas.get_context().unwrap(),
+				context: canvas.get_context().unwrap(),
 				width,
 				height,
 			});
 			GAME = Some(game);
 		}
 
-		update(0.0);
+		backend().context.set_font(&format!("{}px consolas", TEXT_SIZE as f32 + 0.3));
+		backend().context.set_text_baseline(TextBaseline::Top);
 
-		let message = "Hello, 世界!";
-		js! {
-		    console.log( @{message} );
-		}
+		update(0.0);
 	}
 
 	fn get_width(&self) -> u32 {
@@ -66,32 +64,49 @@ impl BackendStyle for Backend {
 	}
 
 	fn fill(&mut self, color: Color) {
-		self.base.set_fill_style_color(&color.to_css());
-		self.base.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
+		self.context.set_fill_style_color(&color.to_css());
+		self.context.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
 
-	fn draw_line(&mut self, start: (f32, f32), end: (f32, f32), width: f32, color: Color) {}
-
-
-	fn fill_rect(&mut self, left: f32, top: f32, right: f32, bottom: f32, color: Color) {}
-	fn draw_rect(
-		&mut self,
-		left: f32,
-		top: f32,
-		right: f32,
-		bottom: f32,
-		width: f32,
-		color: Color,
-	) {
-
+	fn draw_line(&mut self, start: (f32, f32), end: (f32, f32), color: Color) {
+		self.context.set_stroke_style_color(&color.to_css());
+		self.context.set_line_width(1.0);
+		self.context.begin_path();
+		self.context.move_to(start.0 as f64, start.1 as f64);
+		self.context.line_to(end.0 as f64, end.1 as f64);
+		self.context.stroke();
 	}
 
-	fn fill_ellipse(&mut self, x: f32, y: f32, rx: f32, ry: f32, color: Color) {}
-	fn draw_ellipse(&mut self, x: f32, y: f32, rx: f32, ry: f32, width: f32, color: Color) {}
 
+	fn fill_rect(&mut self, x: f32, y: f32, width: f32, height: f32, color: Color) {
+		self.context.set_fill_style_color(&color.to_css());
+		self.context.fill_rect(x as f64, y as f64, width as f64, height as f64);
+	}
+	fn stroke_rect(&mut self, x: f32, y: f32, width: f32, height: f32, line_width: f32, color: Color) {
+		self.context.set_stroke_style_color(&color.to_css());
+		self.context.set_line_width(line_width as f64);
+		self.context.stroke_rect(x as f64, y as f64, width as f64, height as f64)
+	}
 
-	fn draw_text(&mut self, text: &str, x: f32, y: f32, height: f32, color: Color) {}
+	fn fill_circle(&mut self, x: f32, y: f32, radius: f32, color: Color) {
+		self.context.set_fill_style_color(&color.to_css());
+		self.context.begin_path();
+		self.context.arc(x as f64, y as f64, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
+		self.context.fill(Default::default());
+	}
+	fn stroke_circle(&mut self, x: f32, y: f32, radius: f32, line_width: f32, color: Color) {
+		self.context.set_stroke_style_color(&color.to_css());
+		self.context.set_line_width(line_width as f64);
+		self.context.begin_path();
+		self.context.arc(x as f64, y as f64, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
+		self.context.stroke();
+	}
+
+	fn draw_text(&mut self, text: &str, x: f32, y: f32, color: Color) {
+		self.context.set_fill_style_color(&color.to_css());
+		self.context.fill_text(text, x as f64, y as f64 + 4.0, None);
+	}
 }
 
 

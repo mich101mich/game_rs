@@ -3,6 +3,9 @@
 #[macro_use]
 extern crate stdweb;
 
+#[macro_use]
+extern crate arithm_derive;
+
 mod backend;
 pub use backend::{Color, Backend, BackendStyle};
 
