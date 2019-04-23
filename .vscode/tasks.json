@@ -26,10 +26,24 @@
 			"group": "build"
 		},
 		{
+			"label": "deploy web",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"web",
+				"deploy",
+				"--release",
+				"-o",
+				"index"
+			],
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"label": "build all",
 			"dependsOn": [
 				"build desktop",
-				"build web"
+				"deploy web"
 			],
 			"group": "build",
 			"problemMatcher": []

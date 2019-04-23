@@ -4,19 +4,41 @@ use crate::game::*;
 pub use sfml::graphics::Color;
 use sfml::graphics::*;
 
-pub struct Backend {
+pub struct Backend<'a> {
 	window: RenderWindow,
 	font: Font,
+	assets: Vec<Vec<Sprite<'a>>>,
 }
 
-impl BackendStyle for Backend {
+impl<'a> BackendStyle for Backend<'a> {
 
 	fn start(mut game: Game) {
+
+		let image = Image::from_memory(include_bytes!("../../assets/assets.png"))
+			.expect("Unable to load assets.png");
+		let texture = Texture::from_image(&image).expect("Unable to load Assets");
+
 		let mut backend = Backend {
 			window: RenderWindow::new((640, 480), "game", Default::default(), &Default::default()),
-			font: Font::from_memory(include_bytes!("../../static/consola.ttf"))
+			font: Font::from_memory(include_bytes!("../../assets/consola.ttf"))
 				.expect("Unable to load Font"),
+			assets: Vec::new(),
 		};
+
+		{
+			let rows = image.size().y / 16;
+			let cols = image.size().x / 16;
+
+			for y in 0..rows {
+				let mut row = Vec::with_capacity(cols as usize);
+				for x in 0..cols {
+					let mut sprite = Sprite::with_texture(&texture);
+					sprite.set_texture_rect(&IntRect::new(x as i32 * 16, y as i32 * 16, 16, 16));
+					row.push(sprite);
+				}
+				backend.assets.push(row);
+			}
+		}
 
 		backend.window.set_framerate_limit(60);
 
@@ -66,20 +88,17 @@ impl BackendStyle for Backend {
 			.draw_primitives(&line, PrimitiveType::Lines, Default::default());
 	}
 
-
-	fn fill_rect(&mut self, x: f32, y: f32, width: f32, height: f32, color: Color) {
+	fn fill_rect(&mut self, pos: (f32, f32), size: (f32, f32), color: Color) {
 		let mut rect = RectangleShape::new();
-		rect.set_position((x, y));
-		rect.set_size((width, height));
+		rect.set_position(pos);
+		rect.set_size(size);
 		rect.set_fill_color(&color);
 		self.window.draw(&rect);
 	}
 	fn stroke_rect(
 		&mut self,
-		x: f32,
-		y: f32,
-		width: f32,
-		height: f32,
+		(x, y): (f32, f32),
+		(width, height): (f32, f32),
 		line_width: f32,
 		color: Color,
 	) {
@@ -94,13 +113,13 @@ impl BackendStyle for Backend {
 		self.window.draw(&rect);
 	}
 
-	fn fill_circle(&mut self, x: f32, y: f32, radius: f32, color: Color) {
+	fn fill_circle(&mut self, (x, y): (f32, f32), radius: f32, color: Color) {
 		let mut circle = CircleShape::new(radius, 50);
 		circle.set_position((x - radius, y - radius));
 		circle.set_fill_color(&color);
 		self.window.draw(&circle);
 	}
-	fn stroke_circle(&mut self, x: f32, y: f32, radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle(&mut self, (x, y): (f32, f32), radius: f32, line_width: f32, color: Color) {
 		let o = line_width / 2.0;
 
 		let mut circle = CircleShape::new(radius - o, 50);
@@ -111,12 +130,17 @@ impl BackendStyle for Backend {
 		self.window.draw(&circle);
 	}
 
-
-	fn draw_text(&mut self, text: &str, x: f32, y: f32, color: Color) {
+	fn draw_text(&mut self, text: &str, pos: (f32, f32), color: Color) {
 		let mut elem = Text::new(text, &self.font, TEXT_SIZE as u32);
-		elem.set_position((x, y));
+		elem.set_position(pos);
 		elem.set_fill_color(&color);
 		self.window.draw(&elem);
+	}
+
+	fn draw_asset(&mut self, row: usize, id: usize, target_pos: (f32, f32)) {
+		let sprite = &mut self.assets[row][id];
+		sprite.set_position(target_pos);
+		self.window.draw(sprite);
 	}
 }
 

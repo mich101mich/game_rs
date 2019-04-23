@@ -29,14 +29,20 @@ impl Game {
 
 		backend.draw_line(self.line_start, self.line_end, Color::rgb(255, 0, 0));
 
-		backend.stroke_circle(20.0, 100.0, 10.0, 5.0, Color::rgb(0, 255, 0));
-		backend.stroke_circle(20.0, 100.0, 4.0, 1.0, Color::rgb(0, 255, 0));
-		backend.fill_circle(60.0, 100.0, 10.0, Color::rgb(0, 255, 0));
+		backend.stroke_circle((20.0, 100.0), 20.0, 5.0, Color::rgb(0, 255, 0));
+		backend.stroke_circle((20.0, 100.0), 4.0, 1.0, Color::rgb(0, 255, 0));
+		backend.fill_circle((60.0, 100.0), 10.0, Color::rgb(0, 255, 0));
 
-		backend.stroke_rect(300.0, 50.0, 50.0, 20.0, 5.0, Color::rgb(0, 0, 255));
-		backend.fill_rect(300.0, 100.0, 50.0, 20.0, Color::rgb(0, 0, 255));
+		backend.stroke_rect((300.0, 50.0), (50.0, 20.0), 5.0, Color::rgb(0, 0, 255));
+		backend.fill_rect((300.0, 100.0), (50.0, 20.0), Color::rgb(0, 0, 255));
 
-		backend.draw_text("Hello World", 50.0, 50.0, Color::rgb(0, 0, 0));
+		for row in 0..3 {
+			for col in 0..16 {
+				backend.draw_asset(row, col, ((col * 20) as f32, (row * 16) as f32 + 200.0));
+			}
+		}
+
+		backend.draw_text("Hello World", (50.0, 50.0), Color::rgb(0, 0, 0));
 	}
 
 	pub fn end(&mut self) {}

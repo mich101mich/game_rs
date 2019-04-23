@@ -1,7 +1,11 @@
 use super::{BackendStyle, TEXT_SIZE};
 use crate::Game;
 
-use stdweb::{unstable::TryInto, web::html_element::CanvasElement, web::*};
+use stdweb::{
+	unstable::TryInto,
+	web::html_element::*,
+	web::*
+};
 
 static mut GAME: Option<Game> = None;
 static mut BACKEND: Option<Backend> = None;
@@ -23,6 +27,7 @@ fn update(time: f64) {
 
 pub struct Backend {
 	context: CanvasRenderingContext2d,
+	assets: ImageElement,
 	width: u32,
 	height: u32,
 }
@@ -41,9 +46,18 @@ impl BackendStyle for Backend {
 
 		document().body().unwrap().append_child(&canvas);
 
+		let assets: &[u8] = include_bytes!("../../assets/assets.png");
+		let assets = base64::encode(assets);
+
+		let img: ImageElement = document().create_element("img").unwrap().try_into().unwrap();
+		img.set_src(&(String::from("data:image/png;base64,") + &assets));
+		img.set_attribute("hidden", "true");
+		document().body().unwrap().append_child(&img);
+		
 		unsafe {
 			BACKEND = Some(Backend {
 				context: canvas.get_context().unwrap(),
+				assets: img,
 				width,
 				height,
 			});
@@ -68,7 +82,6 @@ impl BackendStyle for Backend {
 		self.context.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
-
 	fn draw_line(&mut self, start: (f32, f32), end: (f32, f32), color: Color) {
 		self.context.set_stroke_style_color(&color.to_css());
 		self.context.set_line_width(1.0);
@@ -78,24 +91,23 @@ impl BackendStyle for Backend {
 		self.context.stroke();
 	}
 
-
-	fn fill_rect(&mut self, x: f32, y: f32, width: f32, height: f32, color: Color) {
+	fn fill_rect(&mut self, (x, y): (f32, f32), (w, h): (f32, f32), color: Color) {
 		self.context.set_fill_style_color(&color.to_css());
-		self.context.fill_rect(x as f64, y as f64, width as f64, height as f64);
+		self.context.fill_rect(x as f64, y as f64, w as f64, h as f64);
 	}
-	fn stroke_rect(&mut self, x: f32, y: f32, width: f32, height: f32, line_width: f32, color: Color) {
+	fn stroke_rect(&mut self, (x, y): (f32, f32), (w, h): (f32, f32), line_width: f32, color: Color) {
 		self.context.set_stroke_style_color(&color.to_css());
 		self.context.set_line_width(line_width as f64);
-		self.context.stroke_rect(x as f64, y as f64, width as f64, height as f64)
+		self.context.stroke_rect(x as f64, y as f64, w as f64, h as f64)
 	}
 
-	fn fill_circle(&mut self, x: f32, y: f32, radius: f32, color: Color) {
+	fn fill_circle(&mut self, (x, y): (f32, f32), radius: f32, color: Color) {
 		self.context.set_fill_style_color(&color.to_css());
 		self.context.begin_path();
 		self.context.arc(x as f64, y as f64, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
 		self.context.fill(Default::default());
 	}
-	fn stroke_circle(&mut self, x: f32, y: f32, radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle(&mut self, (x, y): (f32, f32), radius: f32, line_width: f32, color: Color) {
 		self.context.set_stroke_style_color(&color.to_css());
 		self.context.set_line_width(line_width as f64);
 		self.context.begin_path();
@@ -103,9 +115,19 @@ impl BackendStyle for Backend {
 		self.context.stroke();
 	}
 
-	fn draw_text(&mut self, text: &str, x: f32, y: f32, color: Color) {
+	fn draw_text(&mut self, text: &str, (x, y): (f32, f32), color: Color) {
 		self.context.set_fill_style_color(&color.to_css());
 		self.context.fill_text(text, x as f64, y as f64 + 4.0, None);
+	}
+
+	fn draw_asset(&mut self, row: usize, id: usize, (tx, ty): (f32, f32)) {
+		self.context.draw_image_s(
+			self.assets.clone(),
+			(id * 16) as f64, (row * 16) as f64,
+			16.0, 16.0,
+			tx as f64, ty as f64,
+			16.0, 16.0
+		).expect("Unable to draw image");
 	}
 }
 
