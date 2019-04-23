@@ -34,7 +34,7 @@
 				"deploy",
 				"--release",
 				"-o",
-				"index"
+				"docs"
 			],
 			"problemMatcher": [],
 			"group": "build"
