@@ -1,6 +1,6 @@
 use crate::game::GamePos;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Mouse {
 	pos: GamePos,
 	start_pos: Option<GamePos>,
@@ -10,7 +10,12 @@ pub struct Mouse {
 
 impl Mouse {
 	pub fn new() -> Mouse {
-		Default::default()
+		Mouse {
+			pos: GamePos::new(0.0, 0.0),
+			start_pos: None,
+			shift: false,
+			ctrl: false,
+		}
 	}
 	pub fn set_shift(&mut self, shift: bool) {
 		self.shift = shift;

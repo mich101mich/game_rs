@@ -1,13 +1,11 @@
+#![allow(clippy::new_without_default)]
 
 #[cfg(target_arch = "wasm32")]
 #[macro_use]
 extern crate stdweb;
 
-#[macro_use]
-extern crate arithm_derive;
-
 mod backend;
-pub use backend::{Color, Backend, BackendStyle};
+pub use backend::{Backend, BackendStyle, Color};
 
 mod game;
 pub use game::Game;
