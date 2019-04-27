@@ -26,6 +26,16 @@
 			"group": "build"
 		},
 		{
+			"label": "clean web",
+			"type": "shell",
+			"command": "rm",
+			"args": [
+				"docs/*",
+			],
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"label": "deploy web",
 			"type": "shell",
 			"command": "cargo",
@@ -36,6 +46,7 @@
 				"-o",
 				"docs"
 			],
+			"dependsOn": "clean web",
 			"problemMatcher": [],
 			"group": "build"
 		},
@@ -45,8 +56,8 @@
 				"build desktop",
 				"deploy web"
 			],
-			"group": "build",
-			"problemMatcher": []
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

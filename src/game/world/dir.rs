@@ -7,8 +7,20 @@ pub enum Dir {
 }
 pub use Dir::*;
 
+impl Dir {
+	pub fn clockwise(self) -> Dir {
+		((self.num() + 1) % 4).into()
+	}
+	pub fn counter_clockwise(self) -> Dir {
+		((self.num() + 3) % 4).into()
+	}
+	pub fn num(self) -> usize {
+		self.into()
+	}
+}
+
 macro_rules! impl_from_into {
-	($type:tt) => {
+	($type:ty) => {
 		impl From<$type> for Dir {
 			fn from(val: $type) -> Dir {
 				match val {

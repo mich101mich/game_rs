@@ -1,13 +1,13 @@
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct GamePos {
-	x: f32,
-	y: f32,
+	pub x: f32,
+	pub y: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash)]
 pub struct TilePos {
-	x: u32,
-	y: u32,
+	pub x: usize,
+	pub y: usize,
 }
 
 impl GamePos {
@@ -17,7 +17,7 @@ impl GamePos {
 }
 
 impl TilePos {
-	pub fn new(x: u32, y: u32) -> Self {
+	pub fn new(x: usize, y: usize) -> Self {
 		Self { x, y }
 	}
 }
@@ -65,5 +65,26 @@ impl_op!(GamePos, Div<f32>, f32, Div<GamePos>, div, /);
 
 impl_op!(TilePos, Add, add, +);
 impl_op!(TilePos, Sub, sub, -);
-impl_op!(TilePos, Mul<u32>, u32, Mul<TilePos>, mul, *);
-impl_op!(TilePos, Div<u32>, u32, Div<TilePos>, div, /);
+impl_op!(TilePos, Mul<usize>, usize, Mul<TilePos>, mul, *);
+impl_op!(TilePos, Div<usize>, usize, Div<TilePos>, div, /);
+
+impl From<(f32, f32)> for GamePos {
+	fn from((x, y): (f32, f32)) -> Self {
+		Self { x, y }
+	}
+}
+impl From<[f32; 2]> for GamePos {
+	fn from([x, y]: [f32; 2]) -> Self {
+		Self { x, y }
+	}
+}
+impl From<(usize, usize)> for TilePos {
+	fn from((x, y): (usize, usize)) -> Self {
+		Self { x, y }
+	}
+}
+impl From<[usize; 2]> for TilePos {
+	fn from([x, y]: [usize; 2]) -> Self {
+		Self { x, y }
+	}
+}
