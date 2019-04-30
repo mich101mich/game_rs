@@ -1,4 +1,4 @@
-use crate::game::GamePos;
+use crate::world::GamePos;
 
 #[derive(Debug)]
 pub struct Mouse {

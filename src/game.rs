@@ -1,12 +1,7 @@
-use super::{log, Backend, BackendStyle, Color};
-
-mod interface;
-pub use interface::*;
-mod world;
-pub use world::*;
+use super::{log, Backend, BackendStyle, Color, ui};
 
 pub struct Game {
-	pub mouse: Mouse,
+	pub mouse: ui::Mouse,
 	line_start: (f32, f32),
 	line_end: (f32, f32),
 }
@@ -15,7 +10,7 @@ impl Game {
 	pub fn new() -> Self {
 		log!("Starting...");
 		Game {
-			mouse: Mouse::new(),
+			mouse: ui::Mouse::new(),
 			line_start: (100.0, 200.0),
 			line_end: (300.0, 300.0),
 		}
@@ -47,7 +42,7 @@ impl Game {
 
 	pub fn end(&mut self) {}
 
-	pub fn on_key_press(&mut self, code: Option<KeyCode>, shift: bool, ctrl: bool) {
+	pub fn on_key_press(&mut self, code: Option<ui::KeyCode>, shift: bool, ctrl: bool) {
 		self.mouse.set_shift(shift);
 		self.mouse.set_ctrl(ctrl);
 	}

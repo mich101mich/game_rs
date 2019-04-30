@@ -10,6 +10,9 @@ pub use backend::{Backend, BackendStyle, Color};
 mod game;
 pub use game::Game;
 
+pub mod ui;
+pub mod world;
+
 fn main() {
 	let game = Game::new();
 

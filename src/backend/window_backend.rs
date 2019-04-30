@@ -1,8 +1,8 @@
-
 use super::{BackendStyle, TEXT_SIZE};
-use crate::game::*;
-pub use sfml::graphics::Color;
+use crate::{ui::KeyCode, world::Dir, Game};
 use sfml::graphics::*;
+
+pub use sfml::graphics::Color;
 
 pub struct Backend<'a> {
 	window: RenderWindow,
@@ -11,9 +11,7 @@ pub struct Backend<'a> {
 }
 
 impl<'a> BackendStyle for Backend<'a> {
-
 	fn start(mut game: Game) {
-
 		let image = Image::from_memory(include_bytes!("../../assets/assets.png"))
 			.expect("Unable to load assets.png");
 		let texture = Texture::from_image(&image).expect("Unable to load Assets");
@@ -51,7 +49,6 @@ impl<'a> BackendStyle for Backend<'a> {
 						game.end();
 						backend.window.close();
 						break 'game_loop;
-
 					}
 					KeyPressed {
 						code, ctrl, shift, ..

@@ -1,5 +1,5 @@
 
-use crate::game::{Dir};
+use crate::world::Dir;
 
 pub enum KeyCode {
 	Number(usize),
@@ -10,5 +10,4 @@ pub enum KeyCode {
 	Backspace,
 	Delete,
 	Arrow(Dir),
-
 }

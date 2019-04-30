@@ -51,7 +51,7 @@ impl BackendStyle for Backend {
 
 		let img: ImageElement = document().create_element("img").unwrap().try_into().unwrap();
 		img.set_src(&(String::from("data:image/png;base64,") + &assets));
-		img.set_attribute("hidden", "true");
+		img.set_attribute("hidden", "true").unwrap();
 		document().body().unwrap().append_child(&img);
 		
 		unsafe {
@@ -150,7 +150,6 @@ pub struct Color {
 	pub a: u8,
 }
 
-#[cfg(target_arch = "wasm32")]
 impl Color {
 	pub fn rgb(r: u8, g: u8, b: u8) -> Color {
 		Color { r, g, b, a: 255 }
