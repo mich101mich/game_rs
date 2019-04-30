@@ -79,6 +79,13 @@ impl Grid {
 			.map(TilePos::from)
 	}
 
+	pub fn cost_fn<'a>(&'a self) -> impl 'a + Fn((usize, usize)) -> isize {
+		move |(x, y)| match self.grid[y][x].walk_cost() {
+			Some(cost) => cost as isize,
+			None => -1,
+		}
+	}
+
 	pub fn generate(&mut self) {
 		use Material::*;
 

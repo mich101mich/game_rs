@@ -10,3 +10,6 @@ pub use material::*;
 
 mod grid;
 pub use grid::*;
+
+mod wrapper;
+pub use wrapper::World;

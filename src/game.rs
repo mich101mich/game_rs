@@ -1,9 +1,9 @@
-use super::{log, Backend, BackendStyle, Color, ui};
+use super::{log, ui, world::World, Backend, BackendStyle, Color};
 
 pub struct Game {
 	pub mouse: ui::Mouse,
-	line_start: (f32, f32),
-	line_end: (f32, f32),
+	pub world: World,
+	background_dirty: bool,
 }
 
 impl Game {
@@ -11,18 +11,27 @@ impl Game {
 		log!("Starting...");
 		Game {
 			mouse: ui::Mouse::new(),
-			line_start: (100.0, 200.0),
-			line_end: (300.0, 300.0),
+			world: World::new(128, 128),
+			background_dirty: true,
 		}
 	}
 
 	pub fn draw(&mut self, backend: &mut Backend) {
 		backend.fill(Color::rgb(128, 128, 128));
 
-		self.line_start.0 += self.line_start.1 * 0.1;
-		self.line_start.1 += -self.line_start.0 * 0.1;
-
-		backend.draw_line(self.line_start, self.line_end, Color::rgb(255, 0, 0));
+		if self.background_dirty {
+			backend.fill(Color::rgb(128, 128, 128));
+			backend.clear_background();
+			for row in 0..3 {
+				for col in 0..16 {
+					backend.draw_to_background(
+						(row, col),
+						((col * 20) as f32, (row * 16) as f32 + 200.0),
+					);
+				}
+			}
+		}
+		backend.draw_background();
 
 		backend.stroke_circle((20.0, 100.0), 20.0, 5.0, Color::rgb(0, 255, 0));
 		backend.stroke_circle((20.0, 100.0), 4.0, 1.0, Color::rgb(0, 255, 0));
@@ -30,12 +39,6 @@ impl Game {
 
 		backend.stroke_rect((300.0, 50.0), (50.0, 20.0), 5.0, Color::rgb(0, 0, 255));
 		backend.fill_rect((300.0, 100.0), (50.0, 20.0), Color::rgb(0, 0, 255));
-
-		for row in 0..3 {
-			for col in 0..16 {
-				backend.draw_asset(row, col, ((col * 20) as f32, (row * 16) as f32 + 200.0));
-			}
-		}
 
 		backend.draw_text("Hello World", (50.0, 50.0), Color::rgb(0, 0, 0));
 	}

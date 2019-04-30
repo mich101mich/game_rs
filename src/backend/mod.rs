@@ -41,6 +41,15 @@ pub trait BackendStyle {
 	/// Draws `text` at `pos`
 	fn draw_text(&mut self, text: &str, pos: (f32, f32), color: Color);
 
-	/// Draws a segment of an image from `source_pos` with `size` at `target_pos`
-	fn draw_asset(&mut self, row: usize, id: usize, target_pos: (f32, f32));
+	/// Draws a segment of an image from `tile` at `target_pos`
+	fn draw_asset(&mut self, tile: (usize, usize), target_pos: (f32, f32));
+
+	/// Draw the cached background
+	fn draw_background(&mut self);
+
+	/// Fills the background cache with black
+	fn clear_background(&mut self);
+
+	/// draws an asset from `tile` to the background cache at `target_pos`
+	fn draw_to_background(&mut self, tile: (usize, usize), target_pos: (f32, f32));
 }

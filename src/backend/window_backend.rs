@@ -8,6 +8,7 @@ pub struct Backend<'a> {
 	window: RenderWindow,
 	font: Font,
 	assets: Vec<Vec<Sprite<'a>>>,
+	background: RenderTexture,
 }
 
 impl<'a> BackendStyle for Backend<'a> {
@@ -16,11 +17,19 @@ impl<'a> BackendStyle for Backend<'a> {
 			.expect("Unable to load assets.png");
 		let texture = Texture::from_image(&image).expect("Unable to load Assets");
 
+		let background = RenderTexture::new(
+			game.world.width() as u32 * 16,
+			game.world.height() as u32 * 16,
+			false,
+		)
+		.unwrap();
+
 		let mut backend = Backend {
 			window: RenderWindow::new((640, 480), "game", Default::default(), &Default::default()),
 			font: Font::from_memory(include_bytes!("../../assets/consola.ttf"))
 				.expect("Unable to load Font"),
 			assets: Vec::new(),
+			background,
 		};
 
 		{
@@ -134,10 +143,26 @@ impl<'a> BackendStyle for Backend<'a> {
 		self.window.draw(&elem);
 	}
 
-	fn draw_asset(&mut self, row: usize, id: usize, target_pos: (f32, f32)) {
+	fn draw_asset(&mut self, (row, id): (usize, usize), target_pos: (f32, f32)) {
 		let sprite = &mut self.assets[row][id];
 		sprite.set_position(target_pos);
 		self.window.draw(sprite);
+	}
+
+	fn draw_background(&mut self) {
+		self.background.display();
+		let sprite = Sprite::with_texture(self.background.texture());
+		self.window.draw(&sprite);
+	}
+
+	fn clear_background(&mut self) {
+		self.background.clear(&Color::BLACK);
+	}
+
+	fn draw_to_background(&mut self, (row, id): (usize, usize), target_pos: (f32, f32)) {
+		let sprite = &mut self.assets[row][id];
+		sprite.set_position(target_pos);
+		self.background.draw(sprite);
 	}
 }
 
