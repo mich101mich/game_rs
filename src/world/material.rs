@@ -1,19 +1,20 @@
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Material {
 	Air,
-	Platform,
-	Debris,
-
 	Bedrock,
 	Granite,
 	Rock,
 	Ore,
 	Crystal,
+	Debris,
+	Platform,
 	Machine,
 }
+
 impl Material {
 	pub fn is_solid(self) -> bool {
-		self as usize >= Material::Bedrock as usize
+		const NOT_SOLID: u32 = (1 << Air as u32) | (1 << Platform as u32) | (1 << Debris as u32);
+		(NOT_SOLID & (1 << self as u32)) == 0
 	}
 	pub fn walk_cost(self) -> Option<usize> {
 		match self {

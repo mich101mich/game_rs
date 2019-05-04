@@ -64,6 +64,9 @@ impl<'a> BackendStyle for Backend<'a> {
 					} => {
 						game.on_key_press(convert_key_code(code), shift, ctrl);
 					}
+					Resized { width, height } => backend.window.set_view(&View::from_rect(
+						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
+					)),
 					_ => {}
 				}
 			}

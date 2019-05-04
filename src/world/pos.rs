@@ -88,3 +88,16 @@ impl From<[usize; 2]> for TilePos {
 		Self { x, y }
 	}
 }
+
+use std::fmt;
+impl fmt::Display for GamePos {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "G({:.1}, {:.1})", self.x, self.y)
+	}
+}
+
+impl fmt::Display for TilePos {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "T({}, {})", self.x, self.y)
+	}
+}

@@ -17,6 +17,12 @@ impl Dir {
 	pub fn num(self) -> usize {
 		self.into()
 	}
+	pub fn all() -> impl DoubleEndedIterator<Item = Dir> {
+		[UP, RIGHT, DOWN, LEFT].iter().cloned()
+	}
+	pub fn as_delta(self) -> (isize, isize) {
+		[(0, -1), (1, 0), (0, 1), (-1, 0)][self.num()]
+	}
 }
 
 macro_rules! impl_from_into {

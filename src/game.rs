@@ -3,7 +3,6 @@ use super::{log, ui, world::World, Backend, BackendStyle, Color};
 pub struct Game {
 	pub mouse: ui::Mouse,
 	pub world: World,
-	background_dirty: bool,
 }
 
 impl Game {
@@ -12,26 +11,12 @@ impl Game {
 		Game {
 			mouse: ui::Mouse::new(),
 			world: World::new(128, 128),
-			background_dirty: true,
 		}
 	}
 
 	pub fn draw(&mut self, backend: &mut Backend) {
 		backend.fill(Color::rgb(128, 128, 128));
-
-		if self.background_dirty {
-			backend.fill(Color::rgb(128, 128, 128));
-			backend.clear_background();
-			for row in 0..3 {
-				for col in 0..16 {
-					backend.draw_to_background(
-						(row, col),
-						((col * 20) as f32, (row * 16) as f32 + 200.0),
-					);
-				}
-			}
-		}
-		backend.draw_background();
+		self.world.draw(backend);
 
 		backend.stroke_circle((20.0, 100.0), 20.0, 5.0, Color::rgb(0, 255, 0));
 		backend.stroke_circle((20.0, 100.0), 4.0, 1.0, Color::rgb(0, 255, 0));

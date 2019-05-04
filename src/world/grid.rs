@@ -1,4 +1,4 @@
-use super::{Material, TilePos};
+use super::{Dir, Material, TilePos};
 use hierarchical_pathfinding::prelude::{ManhattanNeighborhood, Neighborhood};
 use rand::Rng;
 
@@ -20,67 +20,117 @@ impl Grid {
 			.take(width)
 			.collect();
 
-		Grid {
+		let mut ret = Grid {
 			width,
 			height,
 			grid,
 			visible,
 			neighborhood: ManhattanNeighborhood::new(width, height),
-		}
+		};
+		ret.generate();
+
+		ret
 	}
 
 	pub fn size(&self) -> TilePos {
 		TilePos::new(self.width, self.height)
 	}
 
-	pub fn get(&self, pos: TilePos) -> Material {
-		self.grid[pos.x][pos.y]
+	pub fn get(&self, x: usize, y: usize) -> Option<Material> {
+		self.grid.get(x).and_then(|v| v.get(y).cloned())
 	}
-	pub fn set(&mut self, pos: TilePos, mat: Material) {
-		self.grid[pos.x][pos.y] = mat
-	}
-
-	pub fn is_solid(&self, pos: TilePos) -> bool {
-		self.get(pos).is_solid()
-	}
-	pub fn walk_cost(&self, pos: TilePos) -> Option<usize> {
-		self.get(pos).walk_cost()
+	pub fn set(&mut self, x: usize, y: usize, mat: Material) {
+		self.grid[x][y] = mat
 	}
 
-	pub fn is_visible(&self, pos: TilePos) -> bool {
-		self.visible[pos.x][pos.y]
+	pub fn is_solid(&self, x: usize, y: usize) -> bool {
+		match self.get(x, y) {
+			Some(m) => m.is_solid(),
+			None => true,
+		}
 	}
-	pub fn set_visible(&mut self, pos: TilePos) {
-		if self.is_visible(pos) {
+
+	pub fn walk_cost(&self, x: usize, y: usize) -> Option<usize> {
+		self.get(x, y).and_then(Material::walk_cost)
+	}
+
+	pub fn is_visible(&self, x: usize, y: usize) -> bool {
+		self.visible
+			.get(x)
+			.and_then(|v| v.get(y).cloned())
+			.unwrap_or(false)
+	}
+	pub fn set_visible(&mut self, x: usize, y: usize) {
+		if self.is_visible(x, y) {
 			return;
 		}
 
-		self.visible[pos.x][pos.y] = true;
+		self.visible[x][y] = true;
 
-		if self.is_solid(pos) {
+		if self.is_solid(x, y) {
 			return;
 		}
 
-		let mut next = vec![pos];
+		let mut next = vec![TilePos::new(x, y)];
 
 		while let Some(p) = next.pop() {
-			for n in self.neighbors_of(p) {
+			for n in self.neighbors_of_p(p) {
+				if self.is_visible_p(n) {
+					continue;
+				}
 				self.visible[n.x][n.y] = true;
-				if !self.is_solid(n) {
+				if !self.is_solid_p(n) {
 					next.push(n);
 				}
 			}
 		}
 	}
 
-	pub fn neighbors_of(&self, pos: TilePos) -> impl Iterator<Item = TilePos> {
+	pub fn neighbors_of(&self, x: usize, y: usize) -> impl Iterator<Item = TilePos> {
 		self.neighborhood
-			.get_all_neighbors((pos.x, pos.y))
+			.get_all_neighbors((x, y))
 			.map(TilePos::from)
 	}
 
+	pub fn get_p(&self, pos: TilePos) -> Option<Material> {
+		self.get(pos.x, pos.y)
+	}
+	pub fn set_p(&mut self, pos: TilePos, mat: Material) {
+		self.set(pos.x, pos.y, mat)
+	}
+	pub fn is_solid_p(&self, pos: TilePos) -> bool {
+		self.is_solid(pos.x, pos.y)
+	}
+	pub fn walk_cost_p(&self, pos: TilePos) -> Option<usize> {
+		self.walk_cost(pos.x, pos.y)
+	}
+	pub fn is_visible_p(&self, pos: TilePos) -> bool {
+		self.is_visible(pos.x, pos.y)
+	}
+	pub fn set_visible_p(&mut self, pos: TilePos) {
+		self.set_visible(pos.x, pos.y)
+	}
+	pub fn neighbors_of_p(&self, pos: TilePos) -> impl Iterator<Item = TilePos> {
+		self.neighbors_of(pos.x, pos.y)
+	}
+
+	pub fn tile_in_dir(&self, pos: TilePos, dir: Dir) -> Option<TilePos> {
+		self.tile_jump_in_dir(pos, dir, 1)
+	}
+	pub fn tile_jump_in_dir(&self, pos: TilePos, dir: Dir, dist: usize) -> Option<TilePos> {
+		let dist = dist as isize;
+		let (dx, dy) = dir.as_delta();
+		let x = pos.x as isize + dist * dx;
+		let y = pos.y as isize + dist * dy;
+		if x >= 0 && x < self.width as isize && y >= 0 && y < self.height as isize {
+			Some(TilePos::new(x as usize, y as usize))
+		} else {
+			None
+		}
+	}
+
 	pub fn cost_fn<'a>(&'a self) -> impl 'a + Fn((usize, usize)) -> isize {
-		move |(x, y)| match self.grid[y][x].walk_cost() {
+		move |(x, y)| match self.walk_cost(x, y) {
 			Some(cost) => cost as isize,
 			None => -1,
 		}
@@ -99,15 +149,17 @@ impl Grid {
 		for _ in 0..cave_count {
 			let x = rng.gen_range(0, self.width);
 			let y = rng.gen_range(0, self.height);
-			self.grid[x][y] = Air;
+			self.set(x, y, Air);
 		}
 
 		let radius = 2;
 		let mid = self.size() / 2;
 		for x in (mid.x - radius)..(mid.x + radius) {
 			for y in (mid.y - radius)..(mid.y + radius) {
-				if (mid.x - x).pow(2) + (mid.y - y).pow(2) < radius * radius {
-					self.grid[x][y] = Air;
+				if (mid.x as isize - x as isize).pow(2) + (mid.y as isize - y as isize).pow(2)
+					< (radius * radius) as isize
+				{
+					self.set(x, y, Air);
 				}
 			}
 		}
@@ -139,8 +191,8 @@ impl Grid {
 		for _ in 0..ore_count {
 			let x = rng.gen_range(0, self.width);
 			let y = rng.gen_range(0, self.height);
-			if self.grid[x][y] == Rock {
-				self.grid[x][y] = Ore;
+			if self.get(x, y) == Some(Rock) {
+				self.set(x, y, Ore);
 			}
 		}
 
@@ -153,8 +205,8 @@ impl Grid {
 		for _ in 0..ore_count {
 			let x = rng.gen_range(0, self.width);
 			let y = rng.gen_range(0, self.height);
-			if self.grid[x][y] == Rock {
-				self.grid[x][y] = Crystal;
+			if self.get(x, y) == Some(Rock) {
+				self.set(x, y, Crystal);
 			}
 		}
 
@@ -162,15 +214,15 @@ impl Grid {
 		self.grow(Crystal, Rock, Crystal, 0.14);
 
 		for x in 0..self.width {
-			self.grid[x][0] = Bedrock;
-			self.grid[x][self.height - 1] = Bedrock;
+			self.set(x, 0, Bedrock);
+			self.set(x, self.height - 1, Bedrock);
 		}
 		for y in 0..self.height {
-			self.grid[0][y] = Bedrock;
-			self.grid[self.width - 1][y] = Bedrock;
+			self.set(0, y, Bedrock);
+			self.set(self.width - 1, y, Bedrock);
 		}
 
-		self.set_visible(mid);
+		self.set_visible_p(mid);
 	}
 
 	fn grow(&mut self, material: Material, src: Material, neighbor: Material, odd_increase: f64) {
@@ -178,13 +230,14 @@ impl Grid {
 
 		for x in 0..self.height {
 			for y in 0..self.width {
-				if self.grid[x][y] != src {
+				if self.get(x, y) != Some(src) {
 					continue;
 				}
 
 				let odds: f64 = self
-					.neighbors_of((x, y).into())
-					.filter(|p| self.get(*p) == neighbor)
+					.neighbors_of(x, y)
+					.filter_map(|p| self.get_p(p))
+					.filter(|m| *m == neighbor)
 					.map(|_| odd_increase)
 					.sum();
 
@@ -194,7 +247,7 @@ impl Grid {
 			}
 		}
 		for (x, y) in changes {
-			self.grid[x][y] = material;
+			self.set(x, y, material);
 		}
 	}
 }
