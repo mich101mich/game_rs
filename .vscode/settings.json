@@ -7,5 +7,5 @@
 		"sfml",
 		"stdweb"
 	],
-	"rust.target": "wasm32-unknown-unknown"
+	//"rust.target": "wasm32-unknown-unknown"
 }

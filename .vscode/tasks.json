@@ -30,7 +30,8 @@
 			"type": "shell",
 			"command": "rm",
 			"args": [
-				"docs/*",
+				"-rf",
+				"docs",
 			],
 			"problemMatcher": [],
 			"group": "build"

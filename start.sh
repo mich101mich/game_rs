@@ -1,5 +1,5 @@
 if "$1"=="server"
-then cargo web start --release --auto-reload
+then cargo web start --release --auto-reload --port 8080
 else if "$1"=="watch"
 	then if "$2"=="web"
 		then cargo watch -x "web build --release"
