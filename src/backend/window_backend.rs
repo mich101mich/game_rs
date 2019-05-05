@@ -24,8 +24,15 @@ impl<'a> BackendStyle for Backend<'a> {
 		)
 		.unwrap();
 
+		let mut video_mode: VideoMode = (640, 480).into();
+		let mut style: window::Style = Default::default();
+		if let Some(mode) = VideoMode::fullscreen_modes().first() {
+			video_mode = *mode;
+			style = window::Style::FULLSCREEN;
+		}
+
 		let mut backend = Backend {
-			window: RenderWindow::new((640, 480), "game", Default::default(), &Default::default()),
+			window: RenderWindow::new(video_mode, "game", style, &Default::default()),
 			font: Font::from_memory(include_bytes!("../../assets/consola.ttf"))
 				.expect("Unable to load Font"),
 			assets: Vec::new(),
@@ -55,13 +62,14 @@ impl<'a> BackendStyle for Backend<'a> {
 				use sfml::window::Event::*;
 				match event {
 					Closed => {
-						game.end();
-						backend.window.close();
 						break 'game_loop;
 					}
 					KeyPressed {
 						code, ctrl, shift, ..
 					} => {
+						if shift && code == window::Key::Escape {
+							break 'game_loop;
+						}
 						game.on_key_press(convert_key_code(code), shift, ctrl);
 					}
 					Resized { width, height } => backend.window.set_view(&View::from_rect(
@@ -75,6 +83,9 @@ impl<'a> BackendStyle for Backend<'a> {
 
 			backend.window.display();
 		}
+
+		game.end();
+		backend.window.close();
 	}
 
 	fn get_width(&self) -> u32 {
