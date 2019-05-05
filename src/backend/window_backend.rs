@@ -1,6 +1,13 @@
 use super::{BackendStyle, TEXT_SIZE};
-use crate::{ui::KeyCode, world::Dir, Game};
-use sfml::graphics::*;
+use crate::{
+	ui::KeyCode,
+	world::{Dir, GamePos},
+	Game,
+};
+use sfml::{
+	graphics::*,
+	window::{self, VideoMode},
+};
 
 pub use sfml::graphics::Color;
 
@@ -99,7 +106,7 @@ impl<'a> BackendStyle for Backend<'a> {
 		self.window.clear(&color);
 	}
 
-	fn draw_line(&mut self, start: (f32, f32), end: (f32, f32), color: Color) {
+	fn draw_line(&mut self, start: GamePos, end: GamePos, color: Color) {
 		let line = [
 			Vertex::with_pos_color(start, color),
 			Vertex::with_pos_color(end, color),
@@ -108,56 +115,50 @@ impl<'a> BackendStyle for Backend<'a> {
 			.draw_primitives(&line, PrimitiveType::Lines, Default::default());
 	}
 
-	fn fill_rect(&mut self, pos: (f32, f32), size: (f32, f32), color: Color) {
+	fn fill_rect(&mut self, pos: GamePos, size: GamePos, color: Color) {
 		let mut rect = RectangleShape::new();
 		rect.set_position(pos);
 		rect.set_size(size);
 		rect.set_fill_color(&color);
 		self.window.draw(&rect);
 	}
-	fn stroke_rect(
-		&mut self,
-		(x, y): (f32, f32),
-		(width, height): (f32, f32),
-		line_width: f32,
-		color: Color,
-	) {
-		let o = line_width / 2.0;
+	fn stroke_rect(&mut self, pos: GamePos, size: GamePos, line_width: f32, color: Color) {
+		let o = GamePos::new(line_width, line_width) / 2.0;
 
 		let mut rect = RectangleShape::new();
-		rect.set_position((x + o, y + o));
-		rect.set_size((width - 2.0 * o, height - 2.0 * o));
+		rect.set_position(pos + o);
+		rect.set_size(size + 2.0 * o);
 		rect.set_outline_color(&color);
 		rect.set_outline_thickness(line_width);
 		rect.set_fill_color(&Color::TRANSPARENT);
 		self.window.draw(&rect);
 	}
 
-	fn fill_circle(&mut self, (x, y): (f32, f32), radius: f32, color: Color) {
+	fn fill_circle(&mut self, pos: GamePos, radius: f32, color: Color) {
 		let mut circle = CircleShape::new(radius, 50);
-		circle.set_position((x - radius, y - radius));
+		circle.set_position((pos.x - radius, pos.y - radius));
 		circle.set_fill_color(&color);
 		self.window.draw(&circle);
 	}
-	fn stroke_circle(&mut self, (x, y): (f32, f32), radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle(&mut self, pos: GamePos, radius: f32, line_width: f32, color: Color) {
 		let o = line_width / 2.0;
 
 		let mut circle = CircleShape::new(radius - o, 50);
-		circle.set_position((x - radius + o, y - radius + o));
+		circle.set_position((pos.x - radius + o, pos.y - radius + o));
 		circle.set_outline_color(&color);
 		circle.set_outline_thickness(line_width);
 		circle.set_fill_color(&Color::TRANSPARENT);
 		self.window.draw(&circle);
 	}
 
-	fn draw_text(&mut self, text: &str, pos: (f32, f32), color: Color) {
+	fn draw_text(&mut self, text: &str, pos: GamePos, color: Color) {
 		let mut elem = Text::new(text, &self.font, TEXT_SIZE as u32);
 		elem.set_position(pos);
 		elem.set_fill_color(&color);
 		self.window.draw(&elem);
 	}
 
-	fn draw_asset(&mut self, (row, id): (usize, usize), target_pos: (f32, f32)) {
+	fn draw_asset(&mut self, (row, id): (usize, usize), target_pos: GamePos) {
 		let sprite = &mut self.assets[row][id];
 		sprite.set_position(target_pos);
 		self.window.draw(sprite);
@@ -173,7 +174,7 @@ impl<'a> BackendStyle for Backend<'a> {
 		self.background.clear(&Color::BLACK);
 	}
 
-	fn draw_to_background(&mut self, (row, id): (usize, usize), target_pos: (f32, f32)) {
+	fn draw_to_background(&mut self, (row, id): (usize, usize), target_pos: GamePos) {
 		let sprite = &mut self.assets[row][id];
 		sprite.set_position(target_pos);
 		self.background.draw(sprite);
@@ -208,5 +209,12 @@ fn convert_key_code(key: sfml::window::Key) -> Option<KeyCode> {
 		Down => Some(KeyCode::Arrow(Dir::DOWN)),
 
 		_ => None,
+	}
+}
+
+use sfml::system::Vector2f;
+impl Into<Vector2f> for GamePos {
+	fn into(self) -> Vector2f {
+		Vector2f::new(self.x, self.y)
 	}
 }

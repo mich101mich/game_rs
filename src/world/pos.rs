@@ -78,6 +78,16 @@ impl From<[f32; 2]> for GamePos {
 		Self { x, y }
 	}
 }
+impl From<TilePos> for GamePos {
+	fn from(src: TilePos) -> Self {
+		let src = src * 16;
+		Self {
+			x: src.x as f32,
+			y: src.y as f32,
+		}
+	}
+}
+
 impl From<(usize, usize)> for TilePos {
 	fn from((x, y): (usize, usize)) -> Self {
 		Self { x, y }
@@ -86,6 +96,15 @@ impl From<(usize, usize)> for TilePos {
 impl From<[usize; 2]> for TilePos {
 	fn from([x, y]: [usize; 2]) -> Self {
 		Self { x, y }
+	}
+}
+impl From<GamePos> for TilePos {
+	fn from(src: GamePos) -> Self {
+		let src = src / 16.0;
+		Self {
+			x: src.x as usize,
+			y: src.y as usize,
+		}
 	}
 }
 

@@ -11,6 +11,8 @@ pub enum Material {
 	Machine,
 }
 
+use Material::*;
+
 impl Material {
 	pub fn is_solid(self) -> bool {
 		const NOT_SOLID: u32 = (1 << Air as u32) | (1 << Platform as u32) | (1 << Debris as u32);
@@ -25,5 +27,3 @@ impl Material {
 		}
 	}
 }
-
-pub use Material::*;

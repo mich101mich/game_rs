@@ -13,3 +13,6 @@ pub use grid::*;
 
 mod wrapper;
 pub use wrapper::World;
+
+mod machine;
+pub use machine::*;

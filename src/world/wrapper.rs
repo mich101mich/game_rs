@@ -1,10 +1,11 @@
-use super::{Dir, Grid, Material};
+use super::{Dir, Grid, Material, TilePos};
 use hierarchical_pathfinding::prelude::*;
 
 pub struct World {
 	grid: Grid,
 	hpa_map: PathCache<ManhattanNeighborhood>,
 	dirty: bool,
+	changes: Vec<TilePos>,
 }
 
 impl World {
@@ -25,6 +26,7 @@ impl World {
 			grid,
 			hpa_map,
 			dirty: true,
+			changes: vec![],
 		}
 	}
 
@@ -37,6 +39,17 @@ impl World {
 
 	pub fn set_dirty(&mut self) {
 		self.dirty = true;
+	}
+
+	pub fn set_p(&mut self, pos: TilePos, mat: Material) {
+		self.set_dirty();
+		self.changes.push(pos);
+		self.grid.set_p(pos, mat)
+	}
+
+	pub fn set_visible_p(&mut self, pos: TilePos) {
+		self.set_dirty();
+		self.grid.set_visible_p(pos)
 	}
 
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
@@ -52,8 +65,8 @@ impl World {
 				for x in 0..self.width() {
 					if self.grid.is_visible(x, y) {
 						let mat = self.grid.get(x, y).expect("Grid size mismatch");
+						let pos = super::TilePos::new(x, y);
 						let (row, col) = if mat == Platform {
-							let pos = super::TilePos::new(x, y);
 							let variant = Dir::all()
 								.map(|dir| {
 									self.grid
@@ -66,12 +79,19 @@ impl World {
 						} else {
 							(0, mat as usize)
 						};
-						backend.draw_to_background((row, col), (x as f32 * 16.0, y as f32 * 16.0))
+						backend.draw_to_background((row, col), pos.into())
 					}
 				}
 			}
 		}
 
 		backend.draw_background();
+	}
+}
+
+impl std::ops::Deref for World {
+	type Target = Grid;
+	fn deref(&self) -> &Grid {
+		&self.grid
 	}
 }

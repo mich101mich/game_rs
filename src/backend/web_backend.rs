@@ -1,5 +1,5 @@
 use super::{BackendStyle, TEXT_SIZE};
-use crate::Game;
+use crate::{Game, world::GamePos};
 
 use stdweb::{unstable::TryInto, web::html_element::*, web::*};
 
@@ -126,48 +126,48 @@ impl BackendStyle for Backend {
 		self.ctx.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
-	fn draw_line(&mut self, start: (f32, f32), end: (f32, f32), color: Color) {
+	fn draw_line(&mut self, start: GamePos, end: GamePos, color: Color) {
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(1.0);
 		self.ctx.begin_path();
-		self.ctx.move_to(start.0 as f64, start.1 as f64);
-		self.ctx.line_to(end.0 as f64, end.1 as f64);
+		self.ctx.move_to(start.x as f64, start.y as f64);
+		self.ctx.line_to(end.x as f64, end.y as f64);
 		self.ctx.stroke();
 	}
 
-	fn fill_rect(&mut self, (x, y): (f32, f32), (w, h): (f32, f32), color: Color) {
+	fn fill_rect(&mut self, pos: GamePos, size: GamePos, color: Color) {
 		self.ctx.set_fill_style_color(&color.to_css());
-		self.ctx.fill_rect(x as f64, y as f64, w as f64, h as f64);
+		self.ctx.fill_rect(pos.x as f64, pos.y as f64, size.x as f64, size.y as f64);
 	}
 	fn stroke_rect(
 		&mut self,
-		(x, y): (f32, f32),
-		(w, h): (f32, f32),
+		pos: GamePos,
+		size: GamePos,
 		line_width: f32,
 		color: Color,
 	) {
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(line_width as f64);
-		self.ctx.stroke_rect(x as f64, y as f64, w as f64, h as f64)
+		self.ctx.stroke_rect(pos.x as f64, pos.y as f64, size.x as f64, size.y as f64);
 	}
 
-	fn fill_circle(&mut self, (x, y): (f32, f32), radius: f32, color: Color) {
+	fn fill_circle(&mut self, pos: GamePos, radius: f32, color: Color) {
 		self.ctx.set_fill_style_color(&color.to_css());
 		self.ctx.begin_path();
 		self.ctx.arc(
-			x as f64, y as f64,
+			pos.x as f64, pos.y as f64,
 			radius as f64,
 			0.0, 2.0 * std::f64::consts::PI,
 			false,
 		);
 		self.ctx.fill(Default::default());
 	}
-	fn stroke_circle(&mut self, (x, y): (f32, f32), radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle(&mut self, pos: GamePos, radius: f32, line_width: f32, color: Color) {
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(line_width as f64);
 		self.ctx.begin_path();
 		self.ctx.arc(
-			x as f64, y as f64,
+			pos.x as f64, pos.y as f64,
 			radius as f64,
 			0.0, 2.0 * std::f64::consts::PI,
 			false,
@@ -175,18 +175,18 @@ impl BackendStyle for Backend {
 		self.ctx.stroke();
 	}
 
-	fn draw_text(&mut self, text: &str, (x, y): (f32, f32), color: Color) {
+	fn draw_text(&mut self, text: &str, pos: GamePos, color: Color) {
 		self.ctx.set_fill_style_color(&color.to_css());
-		self.ctx.fill_text(text, x as f64, y as f64 + 4.0, None);
+		self.ctx.fill_text(text, pos.x as f64, pos.y as f64 + 4.0, None);
 	}
 
-	fn draw_asset(&mut self, (row, id): (usize, usize), (tx, ty): (f32, f32)) {
+	fn draw_asset(&mut self, (row, id): (usize, usize), pos: GamePos) {
 		#[rustfmt::skip]
 		self.ctx.draw_image_s(
 			self.assets.clone(),
 			(id * 16) as f64, (row * 16) as f64,
 			16.0, 16.0,
-			tx as f64, ty as f64,
+			pos.x as f64, pos.y as f64,
 			16.0, 16.0
 		).expect("Unable to draw image");
 	}
@@ -202,13 +202,13 @@ impl BackendStyle for Backend {
 		self.bg.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
-	fn draw_to_background(&mut self, (row, id): (usize, usize), (tx, ty): (f32, f32)) {
+	fn draw_to_background(&mut self, (row, id): (usize, usize), pos: GamePos) {
 		#[rustfmt::skip]
 		self.bg.draw_image_s(
 			self.assets.clone(),
 			(id * 16) as f64, (row * 16) as f64,
 			16.0, 16.0,
-			tx as f64, ty as f64,
+			pos.x as f64, pos.y as f64,
 			16.0, 16.0
 		).expect("Unable to draw image");
 	}
