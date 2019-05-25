@@ -63,6 +63,8 @@ impl<'a> BackendStyle for Backend<'a> {
 
 		backend.window.set_framerate_limit(60);
 
+		let mut clock = sfml::system::Clock::start();
+
 		'game_loop: loop {
 			// Process events
 			while let Some(event) = backend.window.poll_event() {
@@ -86,7 +88,7 @@ impl<'a> BackendStyle for Backend<'a> {
 				}
 			}
 
-			game.draw(&mut backend);
+			game.draw(&mut backend, clock.restart().as_seconds());
 
 			backend.window.display();
 		}

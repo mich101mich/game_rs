@@ -1,11 +1,14 @@
-use super::{Dir, Grid, Material, TilePos};
+use super::{Dir, Grid, Machine, MachineType, Material, TilePos};
 use hierarchical_pathfinding::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 pub struct World {
 	grid: Grid,
 	hpa_map: PathCache<ManhattanNeighborhood>,
 	dirty: bool,
-	changes: Vec<TilePos>,
+	changes: HashSet<TilePos>,
+	machines: HashMap<TilePos, Machine>,
+	spawns: HashSet<TilePos>,
 }
 
 impl World {
@@ -26,7 +29,9 @@ impl World {
 			grid,
 			hpa_map,
 			dirty: true,
-			changes: vec![],
+			changes: HashSet::new(),
+			machines: HashMap::new(),
+			spawns: HashSet::new(),
 		}
 	}
 
@@ -43,7 +48,7 @@ impl World {
 
 	pub fn set_p(&mut self, pos: TilePos, mat: Material) {
 		self.set_dirty();
-		self.changes.push(pos);
+		self.changes.insert(pos);
 		self.grid.set_p(pos, mat)
 	}
 
@@ -86,6 +91,39 @@ impl World {
 		}
 
 		backend.draw_background();
+
+		for machine in self.machines.values() {
+			machine.draw(backend);
+		}
+	}
+
+	pub fn update(&mut self, spawn_has_power: bool) {
+		let mut source_change = vec![];
+		for machine in self.machines.values() {
+			if let Some(change) = machine.power_source_changed(self) {
+				source_change.push((machine.pos, change));
+			}
+		}
+		for (pos, change) in source_change {
+			self.machine_mut(pos).unwrap().set_power_source(change);
+		}
+		for machine in self.machines.values_mut() {
+			machine.update(spawn_has_power);
+		}
+	}
+
+	pub fn add_machine(&mut self, pos: TilePos, machine: MachineType) {
+		if machine == MachineType::Spawn {
+			self.spawns.insert(pos);
+		}
+		self.set_p(pos, Material::Machine);
+		self.machines.insert(pos, Machine::new(pos, machine));
+	}
+	pub fn machine(&self, pos: TilePos) -> Option<&Machine> {
+		self.machines.get(&pos)
+	}
+	pub fn machine_mut(&mut self, pos: TilePos) -> Option<&mut Machine> {
+		self.machines.get_mut(&pos)
 	}
 }
 

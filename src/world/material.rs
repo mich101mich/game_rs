@@ -27,3 +27,17 @@ impl Material {
 		}
 	}
 }
+
+pub enum Mineral {
+	Ore,
+	Crystal,
+}
+
+impl Mineral {
+	pub fn count() -> usize {
+		2
+	}
+	pub fn num(self) -> usize {
+		self as usize
+	}
+}

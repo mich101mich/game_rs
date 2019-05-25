@@ -5,6 +5,7 @@ use stdweb::{unstable::TryInto, web::html_element::*, web::*};
 
 static mut GAME: Option<Game> = None;
 static mut BACKEND: Option<Backend> = None;
+static mut TIME: f64 = 0.0;
 
 fn game() -> &'static mut Game {
 	unsafe { GAME.as_mut().unwrap() }
@@ -17,8 +18,11 @@ fn backend() -> &'static mut Backend {
 fn update(time: f64) {
 	window().request_animation_frame(update);
 
+	let delta = time - unsafe{ TIME };
+	unsafe { TIME = time };
+
 	let backend = backend();
-	game().draw(backend);
+	game().draw(backend, delta as f32 / 1000.0);
 }
 
 fn resize() {
@@ -240,6 +244,6 @@ impl Color {
 		Color { r, g, b, a }
 	}
 	pub fn to_css(self) -> String {
-		format!("rgba({}, {}, {}, {})", self.r, self.g, self.b, self.a)
+		format!("rgba({}, {}, {}, {})", self.r, self.g, self.b, self.a as f64 / 255.0)
 	}
 }

@@ -1,13 +1,15 @@
 use super::{
 	log, ui,
-	world::{GamePos, Machine, MachineType, TilePos, World},
+	world::{GamePos, MachineType, Mineral, TilePos, World},
 	Backend, BackendStyle, Color,
 };
 
 pub struct Game {
 	pub mouse: ui::Mouse,
 	pub world: World,
-	pub machines: Vec<Machine>,
+	pub minerals: Vec<usize>,
+	pub update_interval: f32,
+	pub update_carry: f32,
 }
 
 impl Game {
@@ -16,21 +18,27 @@ impl Game {
 		let mut ret = Game {
 			mouse: ui::Mouse::new(),
 			world: World::new(64, 64),
-			machines: vec![],
+			minerals: std::iter::repeat(0).take(Mineral::count()).collect(),
+			update_interval: 1.0,
+			update_carry: 0.0,
 		};
 
-		ret.add_machine(TilePos::new(32, 32), MachineType::Spawn);
+		ret.world
+			.add_machine(TilePos::new(32, 32), MachineType::Spawn);
 
 		ret
 	}
 
-	pub fn draw(&mut self, backend: &mut Backend) {
+	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
+		self.update_carry += delta_time;
+		if self.update_carry >= self.update_interval {
+			log!("Update!");
+			self.world.update(self.get_mineral(Mineral::Crystal) > 0);
+			self.update_carry = 0.0;
+		}
+
 		backend.fill(Color::rgb(128, 128, 128));
 		self.world.draw(backend);
-
-		for machine in &self.machines {
-			machine.draw(backend);
-		}
 
 		backend.stroke_circle(GamePos::new(20.0, 100.0), 20.0, 5.0, Color::rgb(0, 255, 0));
 	}
@@ -42,8 +50,7 @@ impl Game {
 		self.mouse.set_ctrl(ctrl);
 	}
 
-	pub fn add_machine(&mut self, pos: TilePos, machine: MachineType) {
-		self.machines
-			.push(Machine::new(&mut self.world, pos, machine));
+	pub fn get_mineral(&self, mineral: Mineral) -> usize {
+		self.minerals[mineral.num()]
 	}
 }
