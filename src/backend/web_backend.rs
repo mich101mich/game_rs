@@ -18,6 +18,10 @@ fn backend() -> &'static mut Backend {
 fn update(time: f64) {
 	window().request_animation_frame(update);
 
+	if time >= 1.0 {
+		resize();
+	}
+
 	let delta = time - unsafe{ TIME };
 	unsafe { TIME = time };
 

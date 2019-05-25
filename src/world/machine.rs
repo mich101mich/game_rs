@@ -5,6 +5,7 @@ pub enum MachineType {
 	Spawn,
 	Lab,
 	ConstructionSite(Box<MachineType>),
+	Platform,
 }
 use MachineType::*;
 
@@ -14,6 +15,7 @@ impl MachineType {
 			Spawn => 0,
 			Lab => 1,
 			ConstructionSite(..) => 2,
+			Platform => panic!("Platform has no number"),
 		}
 	}
 }
@@ -40,7 +42,9 @@ impl Machine {
 
 	pub fn draw(&self, backend: &mut crate::Backend) {
 		use crate::{BackendStyle, Color};
-		backend.draw_asset((1, self.machine_type.num()), self.pos.into());
+		if self.machine_type != MachineType::Platform {
+			backend.draw_asset((1, self.machine_type.num()), self.pos.into());
+		}
 		if !self.power {
 			backend.fill_rect(
 				self.pos.into(),
@@ -52,8 +56,10 @@ impl Machine {
 	}
 
 	pub fn update(&mut self, spawn_has_power: bool) {
-		self.power = self.power_source.is_some() && spawn_has_power;
+		self.power = self.has_power_source() && spawn_has_power;
 	}
+
+	pub fn remove(&mut self) {}
 
 	pub fn is_spawn(&self) -> bool {
 		self.machine_type == MachineType::Spawn

@@ -49,7 +49,28 @@ impl World {
 	pub fn set_p(&mut self, pos: TilePos, mat: Material) {
 		self.set_dirty();
 		self.changes.insert(pos);
-		self.grid.set_p(pos, mat)
+		let old = self
+			.grid
+			.get_p(pos)
+			.unwrap_or_else(|| panic!("Called set_p on invalid pos: {}", pos));
+
+		use Material::*;
+		match old {
+			Machine | Platform => {
+				self.machines
+					.remove(&pos)
+					.expect("Missing Machine")
+					.remove();
+			}
+			_ => {}
+		}
+
+		self.grid.set_p(pos, mat);
+
+		if mat == Material::Platform {
+			self.machines
+				.insert(pos, super::Machine::new(pos, MachineType::Platform));
+		}
 	}
 
 	pub fn set_visible_p(&mut self, pos: TilePos) {
@@ -59,7 +80,7 @@ impl World {
 
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
 		use crate::BackendStyle;
-		use Material::Platform;
+		use Material::{Machine, Platform};
 
 		if self.dirty {
 			self.dirty = false;
@@ -76,7 +97,8 @@ impl World {
 								.map(|dir| {
 									self.grid
 										.tile_in_dir(pos, dir)
-										.map(|p| self.grid.get_p(p) == Some(Platform))
+										.and_then(|p| self.grid.get_p(p))
+										.map(|mat| mat == Platform || mat == Machine)
 										.unwrap_or(false) as usize
 								})
 								.rfold(0, |prev, cur| (prev << 1) | cur);

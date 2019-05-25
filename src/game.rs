@@ -1,6 +1,6 @@
 use super::{
 	log, ui,
-	world::{GamePos, MachineType, Mineral, TilePos, World},
+	world::{GamePos, MachineType, Mineral, Material, World},
 	Backend, BackendStyle, Color,
 };
 
@@ -23,8 +23,13 @@ impl Game {
 			update_carry: 0.0,
 		};
 
-		ret.world
-			.add_machine(TilePos::new(32, 32), MachineType::Spawn);
+		ret.world.add_machine((32, 32).into(), MachineType::Spawn);
+		for i in 1..4 {
+			ret.world.set_p((32 + i, 32).into(), Material::Platform);
+			ret.world.set_p((32 + 3, 32 + i).into(), Material::Platform);
+		}
+
+		ret.world.add_machine((32 + 3, 32 + 3).into(), MachineType::Lab);
 
 		ret
 	}
@@ -32,7 +37,6 @@ impl Game {
 	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
 		self.update_carry += delta_time;
 		if self.update_carry >= self.update_interval {
-			log!("Update!");
 			self.world.update(self.get_mineral(Mineral::Crystal) > 0);
 			self.update_carry = 0.0;
 		}
