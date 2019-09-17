@@ -1,3 +1,6 @@
+
+pub const GAME_SCALE: usize = 16;
+
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct GamePos {
 	pub x: f32,
@@ -68,45 +71,33 @@ impl_op!(TilePos, Sub, sub, -);
 impl_op!(TilePos, Mul<usize>, usize, Mul<TilePos>, mul, *);
 impl_op!(TilePos, Div<usize>, usize, Div<TilePos>, div, /);
 
-impl From<(f32, f32)> for GamePos {
-	fn from((x, y): (f32, f32)) -> Self {
-		Self { x, y }
-	}
-}
-impl From<[f32; 2]> for GamePos {
-	fn from([x, y]: [f32; 2]) -> Self {
-		Self { x, y }
-	}
-}
-impl From<TilePos> for GamePos {
-	fn from(src: TilePos) -> Self {
-		let src = src * 16;
-		Self {
-			x: src.x as f32,
-			y: src.y as f32,
+macro_rules! quick_impl {
+	(From<$src: ty> for $dest: ty: $pattern: pat => $result: expr) => {
+		impl From<$src> for $dest {
+			fn from($pattern: $src) -> Self {
+				$result
+			}
 		}
-	}
+	};
 }
 
-impl From<(usize, usize)> for TilePos {
-	fn from((x, y): (usize, usize)) -> Self {
-		Self { x, y }
-	}
-}
-impl From<[usize; 2]> for TilePos {
-	fn from([x, y]: [usize; 2]) -> Self {
-		Self { x, y }
-	}
-}
-impl From<GamePos> for TilePos {
-	fn from(src: GamePos) -> Self {
-		let src = src / 16.0;
-		Self {
-			x: src.x as usize,
-			y: src.y as usize,
-		}
-	}
-}
+quick_impl!(From<(f32, f32)> for GamePos: (x, y) => GamePos {x, y});
+quick_impl!(From<[f32; 2]> for GamePos: [x, y] => GamePos {x, y});
+quick_impl!(From<GamePos> for (f32, f32): GamePos {x, y} => (x, y));
+quick_impl!(From<GamePos> for [f32; 2]: GamePos {x, y} => [x, y]);
+
+quick_impl!(From<(f64, f64)> for GamePos: (x, y) => GamePos {x: x as f32, y: y as f32});
+quick_impl!(From<[f64; 2]> for GamePos: [x, y] => GamePos {x: x as f32, y: y as f32});
+quick_impl!(From<GamePos> for (f64, f64): GamePos {x, y} => (x as f64, y as f64));
+quick_impl!(From<GamePos> for [f64; 2]: GamePos {x, y} => [x as f64, y as f64]);
+
+quick_impl!(From<(usize, usize)> for TilePos: (x, y) => TilePos {x, y});
+quick_impl!(From<[usize; 2]> for TilePos: [x, y] => TilePos {x, y});
+quick_impl!(From<TilePos> for (usize, usize): TilePos {x, y} => (x, y));
+quick_impl!(From<TilePos> for [usize; 2]: TilePos {x, y} => [x, y]);
+
+quick_impl!(From<TilePos> for GamePos: TilePos {x, y} => GamePos {x: (x * GAME_SCALE) as f32, y: (y * GAME_SCALE) as f32});
+quick_impl!(From<GamePos> for TilePos: GamePos {x, y} => TilePos {x: x as usize / GAME_SCALE, y: y as usize / GAME_SCALE});
 
 use std::fmt;
 impl fmt::Display for GamePos {

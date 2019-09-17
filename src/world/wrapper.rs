@@ -46,13 +46,14 @@ impl World {
 		self.dirty = true;
 	}
 
-	pub fn set_p(&mut self, pos: TilePos, mat: Material) {
+	pub fn set<T: Into<TilePos>>(&mut self, pos: T, mat: Material) {
+		let pos: TilePos = pos.into();
 		self.set_dirty();
 		self.changes.insert(pos);
 		let old = self
 			.grid
-			.get_p(pos)
-			.unwrap_or_else(|| panic!("Called set_p on invalid pos: {}", pos));
+			.get(pos)
+			.unwrap_or_else(|| panic!("Called set on invalid pos: {}", pos));
 
 		use Material::*;
 		match old {
@@ -65,7 +66,7 @@ impl World {
 			_ => {}
 		}
 
-		self.grid.set_p(pos, mat);
+		self.grid[pos] = mat;
 
 		if mat == Material::Platform {
 			self.machines
@@ -75,7 +76,7 @@ impl World {
 
 	pub fn set_visible_p(&mut self, pos: TilePos) {
 		self.set_dirty();
-		self.grid.set_visible_p(pos)
+		self.grid.set_visible(pos)
 	}
 
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
@@ -89,15 +90,15 @@ impl World {
 
 			for y in 0..self.height() {
 				for x in 0..self.width() {
-					if self.grid.is_visible(x, y) {
-						let mat = self.grid.get(x, y).expect("Grid size mismatch");
+					if self.grid.is_visible((x, y)) {
+						let mat = self.grid[(x, y)];
 						let pos = super::TilePos::new(x, y);
 						let (row, col) = if mat == Platform {
 							let variant = Dir::all()
 								.map(|dir| {
 									self.grid
 										.tile_in_dir(pos, dir)
-										.and_then(|p| self.grid.get_p(p))
+										.and_then(|p| self.grid.get(p))
 										.map(|mat| mat == Platform || mat == Machine)
 										.unwrap_or(false) as usize
 								})
@@ -106,7 +107,7 @@ impl World {
 						} else {
 							(0, mat as usize)
 						};
-						backend.draw_to_background((row, col), pos.into())
+						backend.draw_to_background((row, col), pos)
 					}
 				}
 			}
@@ -134,11 +135,12 @@ impl World {
 		}
 	}
 
-	pub fn add_machine(&mut self, pos: TilePos, machine: MachineType) {
+	pub fn add_machine<T: Into<TilePos>>(&mut self, pos: T, machine: MachineType) {
+		let pos: TilePos = pos.into();
 		if machine == MachineType::Spawn {
 			self.spawns.insert(pos);
 		}
-		self.set_p(pos, Material::Machine);
+		self.set(pos, Material::Machine);
 		self.machines.insert(pos, Machine::new(pos, machine));
 	}
 	pub fn machine(&self, pos: TilePos) -> Option<&Machine> {

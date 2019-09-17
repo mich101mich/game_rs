@@ -3,9 +3,9 @@ if "%1"=="server" (
 ) else (
 	if "%1"=="watch" (
 		if "%2"=="web" (
-			cargo watch -x "web build --release"
+			cargo watch -x "web check"
 		) else (
-			cargo watch -x "build"
+			cargo watch -x "check"
 		)
 	)
 )

@@ -18,7 +18,7 @@ impl Dir {
 		self.into()
 	}
 	pub fn all() -> impl DoubleEndedIterator<Item = Dir> {
-		[UP, RIGHT, DOWN, LEFT].iter().cloned()
+		[UP, RIGHT, DOWN, LEFT].iter().copied()
 	}
 	pub fn as_delta(self) -> (isize, isize) {
 		[(0, -1), (1, 0), (0, 1), (-1, 0)][self.num()]

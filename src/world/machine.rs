@@ -43,15 +43,15 @@ impl Machine {
 	pub fn draw(&self, backend: &mut crate::Backend) {
 		use crate::{BackendStyle, Color};
 		if self.machine_type != MachineType::Platform {
-			backend.draw_asset((1, self.machine_type.num()), self.pos.into());
+			backend.draw_asset((1, self.machine_type.num()), self.pos);
 		}
 		if !self.power {
 			backend.fill_rect(
-				self.pos.into(),
-				(16.0, 16.0).into(),
+				self.pos,
+				(16.0, 16.0),
 				Color::rgba(0, 0, 0, 140),
 			);
-			backend.draw_asset((3, 0), self.pos.into());
+			backend.draw_asset((3, 0), self.pos);
 		}
 	}
 

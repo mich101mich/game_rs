@@ -134,48 +134,55 @@ impl BackendStyle for Backend {
 		self.ctx.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
-	fn draw_line(&mut self, start: GamePos, end: GamePos, color: Color) {
+	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Color) {
+		let (x, y) = start.into().into();
+		let end: (f64, f64) = end.into().into();
+
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(1.0);
 		self.ctx.begin_path();
-		self.ctx.move_to(start.x as f64, start.y as f64);
-		self.ctx.line_to(end.x as f64, end.y as f64);
+		self.ctx.move_to(x, y);
+		self.ctx.line_to(end.0, end.1);
 		self.ctx.stroke();
 	}
 
-	fn fill_rect(&mut self, pos: GamePos, size: GamePos, color: Color) {
+	fn fill_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, color: Color) {
+		let (x, y) = pos.into().into();
+		let size: (f64, f64) = size.into().into();
+
 		self.ctx.set_fill_style_color(&color.to_css());
-		self.ctx.fill_rect(pos.x as f64, pos.y as f64, size.x as f64, size.y as f64);
+		self.ctx.fill_rect(x, y, size.0, size.1);
 	}
-	fn stroke_rect(
-		&mut self,
-		pos: GamePos,
-		size: GamePos,
-		line_width: f32,
-		color: Color,
-	) {
+	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, line_width: f32, color: Color) {
+		let (x, y) = pos.into().into();
+		let size: (f64, f64) = size.into().into();
+
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(line_width as f64);
-		self.ctx.stroke_rect(pos.x as f64, pos.y as f64, size.x as f64, size.y as f64);
+		self.ctx.stroke_rect(x, y, size.0, size.1);
 	}
 
-	fn fill_circle(&mut self, pos: GamePos, radius: f32, color: Color) {
+	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Color) {
+		let (x, y) = pos.into().into();
+
 		self.ctx.set_fill_style_color(&color.to_css());
 		self.ctx.begin_path();
 		self.ctx.arc(
-			pos.x as f64, pos.y as f64,
+			x, y,
 			radius as f64,
 			0.0, 2.0 * std::f64::consts::PI,
 			false,
 		);
 		self.ctx.fill(Default::default());
 	}
-	fn stroke_circle(&mut self, pos: GamePos, radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, line_width: f32, color: Color) {
+		let (x, y) = pos.into().into();
+
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(line_width as f64);
 		self.ctx.begin_path();
 		self.ctx.arc(
-			pos.x as f64, pos.y as f64,
+			x, y,
 			radius as f64,
 			0.0, 2.0 * std::f64::consts::PI,
 			false,
@@ -183,18 +190,22 @@ impl BackendStyle for Backend {
 		self.ctx.stroke();
 	}
 
-	fn draw_text(&mut self, text: &str, pos: GamePos, color: Color) {
+	fn draw_text<T: Into<GamePos>>(&mut self, text: &str, pos: T, color: Color) {
+		let (x, y) = pos.into().into();
+
 		self.ctx.set_fill_style_color(&color.to_css());
-		self.ctx.fill_text(text, pos.x as f64, pos.y as f64 + 4.0, None);
+		self.ctx.fill_text(text, x, y + 4.0, None);
 	}
 
-	fn draw_asset(&mut self, (row, id): (usize, usize), pos: GamePos) {
+	fn draw_asset<T: Into<GamePos>>(&mut self, (row, id): (usize, usize), pos: T) {
+		let (x, y) = pos.into().into();
+
 		#[rustfmt::skip]
 		self.ctx.draw_image_s(
 			self.assets.clone(),
 			(id * 16) as f64, (row * 16) as f64,
 			16.0, 16.0,
-			pos.x as f64, pos.y as f64,
+			x, y,
 			16.0, 16.0
 		).expect("Unable to draw image");
 	}
@@ -210,13 +221,15 @@ impl BackendStyle for Backend {
 		self.bg.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 	}
 
-	fn draw_to_background(&mut self, (row, id): (usize, usize), pos: GamePos) {
+	fn draw_to_background<T: Into<GamePos>>(&mut self, (row, id): (usize, usize), pos: T) {
+		let (x, y) = pos.into().into();
+
 		#[rustfmt::skip]
 		self.bg.draw_image_s(
 			self.assets.clone(),
 			(id * 16) as f64, (row * 16) as f64,
 			16.0, 16.0,
-			pos.x as f64, pos.y as f64,
+			x, y,
 			16.0, 16.0
 		).expect("Unable to draw image");
 	}

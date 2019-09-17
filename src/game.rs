@@ -23,13 +23,13 @@ impl Game {
 			update_carry: 0.0,
 		};
 
-		ret.world.add_machine((32, 32).into(), MachineType::Spawn);
+		ret.world.add_machine((32, 32), MachineType::Spawn);
 		for i in 1..4 {
-			ret.world.set_p((32 + i, 32).into(), Material::Platform);
-			ret.world.set_p((32 + 3, 32 + i).into(), Material::Platform);
+			ret.world.set((32 + i, 32), Material::Platform);
+			ret.world.set((32 + 3, 32 + i), Material::Platform);
 		}
 
-		ret.world.add_machine((32 + 3, 32 + 3).into(), MachineType::Lab);
+		ret.world.add_machine((32 + 3, 32 + 3), MachineType::Lab);
 
 		ret
 	}
