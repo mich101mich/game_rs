@@ -80,7 +80,7 @@ impl World {
 	}
 
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
-		use crate::BackendStyle;
+		use crate::{BackendStyle, Color};
 		use Material::{Machine, Platform};
 
 		if self.dirty {
@@ -118,6 +118,49 @@ impl World {
 		for machine in self.machines.values() {
 			machine.draw(backend);
 		}
+
+		// ============================= <Node Drawing> =============================
+
+		if !self.changes.is_empty() {
+			let tiles: Vec<_> = self.changes.iter().map(|p| (*p).into()).collect();
+			self.changes.clear();
+			self.hpa_map.tiles_changed(&tiles, self.grid.cost_fn());
+		}
+
+		// only draw the connections between Nodes once
+		let mut visited = HashSet::new();
+		use super::GamePos;
+		let offset = super::GAME_SCALE as f32 / 2.0;
+		let o = GamePos::new(offset, offset);
+
+		{
+			let chunk_size = self.hpa_map.config().chunk_size;
+			let chunk_width = self.width() / chunk_size;
+			let chunk_height = self.height() / chunk_size;
+			let w = (self.width() * super::GAME_SCALE) as f32;
+			let h = (self.height() * super::GAME_SCALE) as f32;
+			for y in (1..chunk_height).map(|y| (y * chunk_size * super::GAME_SCALE) as f32) {
+				backend.draw_line((0.0, y), (w, y), Color::rgb(255, 0, 0));
+			}
+			for x in (1..chunk_width).map(|x| (x * chunk_size * super::GAME_SCALE) as f32) {
+				backend.draw_line((x, 0.0), (x, h), Color::rgb(255, 0, 0));
+			}
+		}
+
+		for node in self.hpa_map.inspect_nodes() {
+			let pos: GamePos = TilePos::from(node.pos()).into();
+			backend.stroke_rect(pos, TilePos::new(1, 1), 2.0, Color::rgba(255, 255, 0, 150));
+
+			visited.insert(node.id());
+
+			for neighbor in node.connected().filter(|n| !visited.contains(&n.id())) {
+				let other_pos: GamePos = TilePos::from(neighbor.pos()).into();
+
+				backend.draw_line(pos + o, other_pos + o, Color::rgba(127, 255, 0, 150));
+			}
+		}
+
+		// ============================= </Node Drawing> =============================
 	}
 
 	pub fn update(&mut self, spawn_has_power: bool) {
