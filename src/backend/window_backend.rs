@@ -11,6 +11,13 @@ use sfml::{
 
 pub use sfml::graphics::Color;
 
+#[macro_export]
+macro_rules! log {
+	( $( $x: expr ),* ) => {
+		println!($( $x ),*)
+	};
+}
+
 pub struct Backend<'a> {
 	window: RenderWindow,
 	font: Font,
@@ -87,7 +94,7 @@ impl<'a> BackendStyle for Backend<'a> {
 						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
 					)),
 					MouseWheelScrolled { delta, .. } => {
-						game.mouse.on_event(ui::MouseEvent::Scroll(delta))
+						game.mouse.on_event(ui::MouseEvent::Scroll(-delta))
 					}
 					MouseButtonPressed { button, .. } => {
 						if button == window::mouse::Button::Left {
@@ -116,12 +123,13 @@ impl<'a> BackendStyle for Backend<'a> {
 				}
 			}
 
+
 			let mouse = &game.mouse;
 			let view = View::from_rect(&FloatRect::new(
 				-mouse.offset().x,
 				-mouse.offset().y,
-				backend.get_width() as f32 * mouse.scale(),
-				backend.get_height() as f32 * mouse.scale(),
+				backend.get_width() as f32 / mouse.scale(),
+				backend.get_height() as f32 / mouse.scale(),
 			));
 
 			backend.window.set_view(&view);
@@ -234,13 +242,6 @@ impl<'a> BackendStyle for Backend<'a> {
 		sprite.set_position(target_pos.into());
 		self.background.draw(sprite);
 	}
-}
-
-#[macro_export]
-macro_rules! log {
-	( $( $x: expr ),* ) => {
-		println!($( $x ),*)
-	};
 }
 
 use sfml::window::Key;

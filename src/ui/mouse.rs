@@ -26,7 +26,7 @@ impl Mouse {
 		match event {
 			Move(delta) => {
 				if self.left_down() {
-					let moved = delta * self.scale;
+					let moved = delta / self.scale;
 					self.offset += moved;
 				}
 				self.pos += delta;
@@ -40,6 +40,14 @@ impl Mouse {
 			Scroll(delta) => {
 				let factor = 1.0 - delta / 10.0;
 				self.scale *= factor;
+
+				let old_offset = self.offset;
+				self.offset -= self.pos / (self.scale / factor) - self.pos / self.scale;
+				crate::log!("{} -> {} @ {} * {}", old_offset, self.offset, self.pos, factor);
+
+				// m_world = (m_screen / scale + offset) ## const
+				// o_a + m / s_a == o_b + m / s_b
+				// o_b == o_a + m / s_a - m / s_b
 			}
 		}
 	}

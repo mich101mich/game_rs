@@ -43,8 +43,6 @@ impl Game {
 
 		backend.fill(Color::rgb(128, 128, 128));
 		self.world.draw(backend);
-
-		backend.stroke_circle(GamePos::new(20.0, 100.0), 20.0, 5.0, Color::rgb(0, 255, 0));
 	}
 
 	pub fn end(&mut self) {}

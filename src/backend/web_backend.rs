@@ -28,10 +28,6 @@ fn backend() -> &'static mut Backend {
 fn update(time: f64) {
 	window().request_animation_frame(update);
 
-	if time >= 1.0 {
-		resize();
-	}
-
 	let delta = time - unsafe{ TIME };
 	unsafe { TIME = time };
 
@@ -42,8 +38,8 @@ fn update(time: f64) {
 		0.0 as f64,
 		0.0,
 		mouse.scale() as f64,
-		(mouse.offset().x / mouse.scale()) as f64,
-		(mouse.offset().y / mouse.scale()) as f64,
+		(mouse.offset().x * mouse.scale()) as f64,
+		(mouse.offset().y * mouse.scale()) as f64,
 	);
 	game().draw(backend, delta as f32 / 1000.0);
 }
@@ -53,12 +49,12 @@ fn on_mouse_wheel(event: event::MouseWheelEvent) {
 }
 
 fn on_mouse_move(event: event::MouseMoveEvent) {
-	let backend = backend();
+	let mouse = &mut backend().mouse;
 	let x = event.client_x();
 	let y = event.client_y();
-	let delta = ((x - backend.mouse.0) as f32, (y - backend.mouse.1) as f32);
-	backend.mouse = (x, y);
-	game().mouse.on_event(ui::MouseEvent::Move(delta.into()))
+	let delta = ((x - mouse.0) as f32, (y - mouse.1) as f32);
+	*mouse = (x, y);
+	game().mouse.on_event(ui::MouseEvent::Move(delta.into()));
 }
 
 fn on_mouse_down(event: event::MouseDownEvent) {
@@ -95,6 +91,11 @@ fn resize() {
 	backend.height = height;
 	backend.canvas.set_width(width);
 	backend.canvas.set_height(height);
+
+	js! {
+		@{ &backend.ctx }.imageSmoothingEnabled = false;
+		@{ &backend.bg }.imageSmoothingEnabled = false;
+	}
 
 	game().world.set_dirty();
 }
@@ -164,7 +165,8 @@ impl BackendStyle for Backend {
 			ctx.set_font(&format!("{}px consolas", TEXT_SIZE as f32 + 0.3));
 			ctx.set_text_baseline(TextBaseline::Top);
 			js! {
-				@{ &ctx }.imageSmoothingEnabled = false;
+				@{ &backend().ctx }.imageSmoothingEnabled = false;
+				@{ &backend().bg }.imageSmoothingEnabled = false;
 			}
 		}
 
@@ -188,8 +190,11 @@ impl BackendStyle for Backend {
 	}
 
 	fn fill(&mut self, color: Color) {
+		self.ctx.save();
+		self.ctx.set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 		self.ctx.set_fill_style_color(&color.to_css());
 		self.ctx.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
+		self.ctx.restore();
 	}
 
 	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Color) {
@@ -276,7 +281,7 @@ impl BackendStyle for Backend {
 
 	fn clear_background(&mut self) {
 		self.bg.set_fill_style_color("black");
-		self.bg.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
+		self.bg.fill_rect(0.0, 0.0, self.background_canvas.width() as f64 * 16.0, self.background_canvas.height() as f64 * 16.0);
 	}
 
 	fn draw_to_background<T: Into<GamePos>>(&mut self, (row, id): (usize, usize), pos: T) {
