@@ -1,6 +1,6 @@
 use super::{BackendStyle, TEXT_SIZE};
 use crate::{
-	ui::KeyCode,
+	ui,
 	world::{Dir, GamePos},
 	Game,
 };
@@ -63,6 +63,8 @@ impl<'a> BackendStyle for Backend<'a> {
 
 		backend.window.set_framerate_limit(60);
 
+		let mut mouse = (0, 0);
+
 		let mut clock = sfml::system::Clock::start();
 
 		'game_loop: loop {
@@ -79,14 +81,50 @@ impl<'a> BackendStyle for Backend<'a> {
 						if shift && code == window::Key::Escape {
 							break 'game_loop;
 						}
-						game.on_key_press(convert_key_code(code), shift, ctrl);
+						game.on_key_press(convert_key_code(code), shift.into(), ctrl.into());
 					}
 					Resized { width, height } => backend.window.set_view(&View::from_rect(
 						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
 					)),
+					MouseWheelScrolled { delta, .. } => {
+						game.mouse.on_event(ui::MouseEvent::Scroll(delta))
+					}
+					MouseButtonPressed { button, .. } => {
+						if button == window::mouse::Button::Left {
+							game.mouse
+								.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
+						} else if button == window::mouse::Button::Right {
+							game.mouse
+								.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
+						}
+					}
+					MouseButtonReleased { button, .. } => {
+						if button == window::mouse::Button::Left {
+							game.mouse
+								.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
+						} else if button == window::mouse::Button::Right {
+							game.mouse
+								.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
+						}
+					}
+					MouseMoved { x, y } => {
+						let delta = ((x - mouse.0) as f32, (y - mouse.1) as f32);
+						mouse = (x, y);
+						game.mouse.on_event(ui::MouseEvent::Move(delta.into()));
+					}
 					_ => {}
 				}
 			}
+
+			let mouse = &game.mouse;
+			let view = View::from_rect(&FloatRect::new(
+				-mouse.offset().x,
+				-mouse.offset().y,
+				backend.get_width() as f32 * mouse.scale(),
+				backend.get_height() as f32 * mouse.scale(),
+			));
+
+			backend.window.set_view(&view);
 
 			game.draw(&mut backend, clock.restart().as_seconds());
 
@@ -124,12 +162,18 @@ impl<'a> BackendStyle for Backend<'a> {
 		rect.set_fill_color(&color);
 		self.window.draw(&rect);
 	}
-	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, line_width: f32, color: Color) {
+	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		size: T2,
+		line_width: f32,
+		color: Color,
+	) {
 		let o = GamePos::new(line_width, line_width) / 2.0;
 
 		let mut rect = RectangleShape::new();
 		rect.set_position(pos.into() + o);
-		rect.set_size(size.into() + 2.0 * o);
+		rect.set_size(size.into() - 2.0 * o);
 		rect.set_outline_color(&color);
 		rect.set_outline_thickness(line_width);
 		rect.set_fill_color(&Color::TRANSPARENT);
@@ -137,15 +181,21 @@ impl<'a> BackendStyle for Backend<'a> {
 	}
 
 	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Color) {
-		let GamePos {x, y} = pos.into();
+		let GamePos { x, y } = pos.into();
 
 		let mut circle = CircleShape::new(radius, 50);
 		circle.set_position((x - radius, y - radius));
 		circle.set_fill_color(&color);
 		self.window.draw(&circle);
 	}
-	fn stroke_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, line_width: f32, color: Color) {
-		let GamePos {x, y} = pos.into();
+	fn stroke_circle<T: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		radius: f32,
+		line_width: f32,
+		color: Color,
+	) {
+		let GamePos { x, y } = pos.into();
 		let o = line_width / 2.0;
 
 		let mut circle = CircleShape::new(radius - o, 50);
@@ -194,6 +244,7 @@ macro_rules! log {
 }
 
 use sfml::window::Key;
+use ui::KeyCode;
 fn convert_key_code(key: sfml::window::Key) -> Option<KeyCode> {
 	use Key::*;
 

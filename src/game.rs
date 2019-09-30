@@ -1,6 +1,6 @@
 use super::{
 	log, ui,
-	world::{GamePos, MachineType, Mineral, Material, World},
+	world::{GamePos, MachineType, Material, Mineral, World},
 	Backend, BackendStyle, Color,
 };
 
@@ -49,7 +49,12 @@ impl Game {
 
 	pub fn end(&mut self) {}
 
-	pub fn on_key_press(&mut self, code: Option<ui::KeyCode>, shift: bool, ctrl: bool) {
+	pub fn on_key_press(
+		&mut self,
+		code: Option<ui::KeyCode>,
+		shift: ui::ButtonState,
+		ctrl: ui::ButtonState,
+	) {
 		self.mouse.set_shift(shift);
 		self.mouse.set_ctrl(ctrl);
 	}

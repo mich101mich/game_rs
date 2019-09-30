@@ -1,11 +1,21 @@
 use super::{BackendStyle, TEXT_SIZE};
-use crate::{Game, world::GamePos};
+use crate::{Game, world::GamePos, ui};
 
-use stdweb::{unstable::TryInto, web::html_element::*, web::*};
+use stdweb::{unstable::TryInto, web::html_element::*, web::*, traits::*};
 
 static mut GAME: Option<Game> = None;
 static mut BACKEND: Option<Backend> = None;
 static mut TIME: f64 = 0.0;
+
+#[macro_export]
+macro_rules! log {
+	( $( $x: expr ),* ) => {
+		let s = format!($( $x ),*);
+		js!(
+			console.log(@{ s });
+		)
+	};
+}
 
 fn game() -> &'static mut Game {
 	unsafe { GAME.as_mut().unwrap() }
@@ -26,9 +36,54 @@ fn update(time: f64) {
 	unsafe { TIME = time };
 
 	let backend = backend();
+	let mouse = &game().mouse;
+	backend.ctx.set_transform(
+		mouse.scale() as f64,
+		0.0 as f64,
+		0.0,
+		mouse.scale() as f64,
+		(mouse.offset().x / mouse.scale()) as f64,
+		(mouse.offset().y / mouse.scale()) as f64,
+	);
 	game().draw(backend, delta as f32 / 1000.0);
 }
 
+fn on_mouse_wheel(event: event::MouseWheelEvent) {
+	game().mouse.on_event(ui::MouseEvent::Scroll(event.delta_y() as f32 / 100.0));
+}
+
+fn on_mouse_move(event: event::MouseMoveEvent) {
+	let backend = backend();
+	let x = event.client_x();
+	let y = event.client_y();
+	let delta = ((x - backend.mouse.0) as f32, (y - backend.mouse.1) as f32);
+	backend.mouse = (x, y);
+	game().mouse.on_event(ui::MouseEvent::Move(delta.into()))
+}
+
+fn on_mouse_down(event: event::MouseDownEvent) {
+	if event.button() == event::MouseButton::Left {
+		game().mouse.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
+	} else if event.button() == event::MouseButton::Right {
+		game().mouse.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
+	}
+}
+fn on_mouse_up(event: event::MouseUpEvent) {
+	if event.button() == event::MouseButton::Left {
+		game().mouse.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
+	} else if event.button() == event::MouseButton::Right {
+		game().mouse.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
+	}
+}
+
+fn on_context_menu(event: event::ContextMenuEvent) {
+	event.cancel_bubble();
+	event.prevent_default();
+}
+
+fn on_resize(_: event::ResizeEvent) {
+	resize();
+}
 fn resize() {
 	let backend = backend();
 
@@ -52,11 +107,12 @@ pub struct Backend {
 	assets: ImageElement,
 	width: u32,
 	height: u32,
+	mouse: (i32, i32),
 }
 impl BackendStyle for Backend {
 	fn start(game: Game) {
 
-		document().body().unwrap().set_attribute("style", "margin: 0;  width: 100vw;  height: 100vh; background-color: black;").unwrap();
+		document().body().unwrap().set_attribute("style", "margin: 0;  width: 100vw;  height: 99.9vh; background-color: black;").unwrap();
 
 		let canvas: CanvasElement = document()
 			.create_element("canvas")
@@ -98,6 +154,7 @@ impl BackendStyle for Backend {
 				assets: img,
 				width: 200,
 				height: 200,
+				mouse: (0, 0),
 			});
 			GAME = Some(game);
 		}
@@ -111,12 +168,13 @@ impl BackendStyle for Backend {
 			}
 		}
 
-		js! {
-			window.addEventListener("resize", () => {
-				console.log("resize");
-				@{ resize }();
-			});
-		}
+		window().add_event_listener(on_resize);
+		window().add_event_listener(on_mouse_up);
+		window().add_event_listener(on_mouse_down);
+		window().add_event_listener(on_mouse_move);
+		window().add_event_listener(on_mouse_wheel);
+		window().add_event_listener(on_context_menu);
+
 		resize();
 
 		update(0.0);
@@ -233,16 +291,6 @@ impl BackendStyle for Backend {
 			16.0, 16.0
 		).expect("Unable to draw image");
 	}
-}
-
-#[macro_export]
-macro_rules! log {
-	( $( $x: expr ),* ) => {
-		let s = format!($( $x ),*);
-		js!(
-			console.log(@{ s });
-		)
-	};
 }
 
 #[derive(Clone, Copy, Debug)]

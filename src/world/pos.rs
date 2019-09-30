@@ -1,4 +1,3 @@
-
 pub const GAME_SCALE: usize = 16;
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
@@ -61,15 +60,43 @@ macro_rules! impl_op {
 	};
 }
 
+macro_rules! impl_assign {
+	($target: ty, $trait: ty, $rhs: ty, $f: ident, $op: tt) => {
+		impl $trait for $target {
+			fn $f(&mut self, rhs: $rhs) {
+				*self = *self $op rhs
+			}
+		}
+	};
+}
+
 impl_op!(GamePos, Add, add, +);
 impl_op!(GamePos, Sub, sub, -);
 impl_op!(GamePos, Mul<f32>, f32, Mul<GamePos>, mul, *);
 impl_op!(GamePos, Div<f32>, f32, Div<GamePos>, div, /);
+impl_assign!(GamePos, AddAssign, GamePos, add_assign, +);
+impl_assign!(GamePos, SubAssign, GamePos, sub_assign, -);
+impl_assign!(GamePos, MulAssign<f32>, f32, mul_assign, *);
+impl_assign!(GamePos, DivAssign<f32>, f32, div_assign, /);
+
+impl Neg for GamePos {
+	type Output = Self;
+	fn neg(self) -> Self::Output {
+		Self {
+			x: -self.x,
+			y: -self.y,
+		}
+	}
+}
 
 impl_op!(TilePos, Add, add, +);
 impl_op!(TilePos, Sub, sub, -);
 impl_op!(TilePos, Mul<usize>, usize, Mul<TilePos>, mul, *);
 impl_op!(TilePos, Div<usize>, usize, Div<TilePos>, div, /);
+impl_assign!(TilePos, AddAssign, TilePos, add_assign, +);
+impl_assign!(TilePos, SubAssign, TilePos, sub_assign, -);
+impl_assign!(TilePos, MulAssign<usize>, usize, mul_assign, *);
+impl_assign!(TilePos, DivAssign<usize>, usize, div_assign, /);
 
 macro_rules! quick_impl {
 	(From<$src: ty> for $dest: ty: $pattern: pat => $result: expr) => {
@@ -88,8 +115,8 @@ quick_impl!(From<GamePos> for [f32; 2]: GamePos {x, y} => [x, y]);
 
 quick_impl!(From<(f64, f64)> for GamePos: (x, y) => GamePos {x: x as f32, y: y as f32});
 quick_impl!(From<[f64; 2]> for GamePos: [x, y] => GamePos {x: x as f32, y: y as f32});
-quick_impl!(From<GamePos> for (f64, f64): GamePos {x, y} => (x as f64, y as f64));
-quick_impl!(From<GamePos> for [f64; 2]: GamePos {x, y} => [x as f64, y as f64]);
+quick_impl!(From<GamePos> for (f64, f64): GamePos {x, y} => (f64::from(x), f64::from(y)));
+quick_impl!(From<GamePos> for [f64; 2]: GamePos {x, y} => [f64::from(x), f64::from(y)]);
 
 quick_impl!(From<(usize, usize)> for TilePos: (x, y) => TilePos {x, y});
 quick_impl!(From<[usize; 2]> for TilePos: [x, y] => TilePos {x, y});

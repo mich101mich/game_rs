@@ -582,14 +582,23 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_1e65287b40ff2503a5bd21bba8369d5759ddb2d4": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).height=($1);
             },
+            "__cargo_web_snippet_216c7045bad0aa79bff1f8b10b0e7a61cd417ecb": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof MouseEvent && o.type === "mousemove") | 0;
+            },
             "__cargo_web_snippet_275c52510376b526efc3b77789bb01b8a440efd4": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).width;})());
             },
             "__cargo_web_snippet_2e6bf47ec7f31b4cb119a8d2793bacfcfe38b112": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof Error) | 0;
             },
+            "__cargo_web_snippet_2e92e77c21dea6f3b01f9ba7ab22b0a1dae4a9ab": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).button;})());
+            },
             "__cargo_web_snippet_352943ae98b2eeb817e36305c3531d61c7e1a52b": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof Element) | 0;
+            },
+            "__cargo_web_snippet_3e0f0762f590afbb4c73b0046d2db7956524fadd": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).deltaY;})());
             },
             "__cargo_web_snippet_49ae24e0f2d690c290030200ef793256363af281": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).getContext("2d");})());
@@ -599,9 +608,6 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             },
             "__cargo_web_snippet_4c54dda082b46e602b3fc5e5fe575126a0f3d928": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).src=($1);
-            },
-            "__cargo_web_snippet_4d733095b1f4c106b2b6ecc253e2fdc464303921": function($0) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);window.addEventListener("resize",()=>{console.log("resize");($0)();});
             },
             "__cargo_web_snippet_4f29ff17c08fb320b6a76c39c14380ee7fcb210f": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).drawImage(($1),0.0,0.0);
@@ -618,6 +624,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_64655a1289b56bca2d9a5c95e101442bd0d36acc": function($0, $1, $2) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);($0).lineTo(($1),($2));
             },
+            "__cargo_web_snippet_6c1f25bf7c9104accb489618515bd1869f4ca315": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).clientX;})());
+            },
             "__cargo_web_snippet_6e1114fed8a9083841544437b12ccc90280f32cd": function($0, $1, $2) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);Module.STDWEB_PRIVATE.from_js($0, (function(){try{let bytes=require("crypto").randomBytes(($1));HEAPU8.set(new Uint8Array(bytes),($2));return{success:true};}catch(err){return{success:false,error:err};}})());
             },
@@ -633,6 +642,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_7ba9f102925446c90affc984f921f414615e07dd": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).body;})());
             },
+            "__cargo_web_snippet_7bead6b563d52eee65504adb6b76c5cacb5428d3": function($0) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);($0).preventDefault();
+            },
             "__cargo_web_snippet_7e43238d5dec71ba02e4e74b13114774361fc9a0": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).getBoundingClientRect();})());
             },
@@ -645,6 +657,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_8878b5fa0fa47aa5a1b525a2e37fef51440640ff": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof TypeError) | 0;
             },
+            "__cargo_web_snippet_888b745991f21839297ff985ddd25fb66d630e67": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof MouseEvent && o.type === "mousedown") | 0;
+            },
             "__cargo_web_snippet_89611721005b3de331324f19bedec5df179862e4": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof CanvasRenderingContext2D) | 0;
             },
@@ -656,6 +671,12 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             },
             "__cargo_web_snippet_91749aeb589cd0f9b17cbc01b2872ba709817982": function($0, $1, $2) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);Module.STDWEB_PRIVATE.from_js($0, (function(){try{return{value:function(){return($1).createElement(($2));}(),success:true};}catch(error){return{error:error,success:false};}})());
+            },
+            "__cargo_web_snippet_947e3c71a436d2534560c3daba2b3a52e02ec6d0": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).clientY;})());
+            },
+            "__cargo_web_snippet_99c4eefdc8d4cc724135163b8c8665a1f3de99e4": function($0, $1, $2, $3) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);Module.STDWEB_PRIVATE.from_js($0, (function(){var listener=($1);($2).addEventListener(($3),listener);return listener;})());
             },
             "__cargo_web_snippet_9f22d4ca7bc938409787341b7db181f8dd41e6df": function($0) {
                 Module.STDWEB_PRIVATE.increment_refcount( $0 );
@@ -678,17 +699,29 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_b2f12f45d22efd090ad11c42910de6a690b26ff5": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).textBaseline=($1);
             },
+            "__cargo_web_snippet_b3fc457a3e57e3a1a724d4fa012b206b45b5f3f1": function($0, $1, $2, $3, $4, $5, $6) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);$5 = Module.STDWEB_PRIVATE.to_js($5);$6 = Module.STDWEB_PRIVATE.to_js($6);($0).setTransform(($1),($2),($3),($4),($5),($6));
+            },
+            "__cargo_web_snippet_b6617e999209f5b71f18f29d9a24d764b1c63845": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof MouseEvent && o.type === "mouseup") | 0;
+            },
             "__cargo_web_snippet_bd22eda5ec53d6777bf2959f246ff36ad471504d": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof DOMRect) | 0;
             },
             "__cargo_web_snippet_beb1ef96dc78600c39cf4a2d30d33fb4fa78d6e9": function($0, $1, $2, $3, $4, $5, $6) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);$5 = Module.STDWEB_PRIVATE.to_js($5);$6 = Module.STDWEB_PRIVATE.to_js($6);($0).arc(($1),($2),($3),($4),($5),($6));
             },
+            "__cargo_web_snippet_c5832a87376bd02b13fd6a2003d3562c36a4bb00": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).cancelBubble;})());
+            },
             "__cargo_web_snippet_c7547984f785b7dfdc411e5e87bba0771edcbeab": function($0) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);($0).stroke();
             },
             "__cargo_web_snippet_cf0debbfec441e126df5ec4b805a71e969f49a75": function($0, $1, $2, $3, $4) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);($0).fillRect(($1),($2),($3),($4));
+            },
+            "__cargo_web_snippet_d2e4181d99d09b8dcdaf227704c44b7be437abd4": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof Event && o.type === "resize") | 0;
             },
             "__cargo_web_snippet_d3336fefc8646aa17b501ca0d1fc23db2bfd8df2": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).height;})());
@@ -710,6 +743,12 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             },
             "__cargo_web_snippet_ea616dc5ba4767572f03b776a1fb421c8b84a57e": function($0) {
                 var r = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (r instanceof DOMException) && (r.name === "IndexSizeError");
+            },
+            "__cargo_web_snippet_eea9933899a35aba26f582601ed62b945b070021": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof MouseEvent && o.type === "wheel") | 0;
+            },
+            "__cargo_web_snippet_eed6ef6ba0cb21c6d1a647a88df6fdef9a5f52b1": function($0) {
+                var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof MouseEvent && o.type === "contextmenu") | 0;
             },
             "__cargo_web_snippet_f1c5b555b7858c4f021b91769dce6f5bafdef9a2": function($0, $1, $2, $3) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);Module.STDWEB_PRIVATE.from_js($0, (function(){var callback=($1);var request=($2).requestAnimationFrame(callback);return{request:request,callback:callback,window:($3)};})());
