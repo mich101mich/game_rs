@@ -45,7 +45,13 @@ fn update(time: f64) {
 }
 
 fn on_mouse_wheel(event: event::MouseWheelEvent) {
-	game().mouse.on_event(ui::MouseEvent::Scroll(event.delta_y() as f32 / 100.0));
+	use stdweb::web::event::MouseWheelDeltaMode::*;
+	let delta = match event.delta_mode() {
+		Pixel => event.delta_y() / 100.0,
+		Line => event.delta_y() / 3.0,
+		Page => event.delta_y(),
+	};
+	game().mouse.on_event(ui::MouseEvent::Scroll(delta as f32));
 }
 
 fn on_mouse_move(event: event::MouseMoveEvent) {
@@ -83,9 +89,16 @@ fn on_resize(_: event::ResizeEvent) {
 fn resize() {
 	let backend = backend();
 
-	let canvas_size = backend.canvas.get_bounding_client_rect();
-	let width = canvas_size.get_width() as u32;
-	let height = canvas_size.get_height() as u32;
+	let width: f64 = js! {
+		return @{ backend.canvas.as_ref() }.getBoundingClientRect().width
+	}.try_into().unwrap();
+
+	let height: f64 = js! {
+		return @{ backend.canvas.as_ref() }.getBoundingClientRect().height
+	}.try_into().unwrap();
+
+	let width = width as u32;
+	let height = height as u32;
 
 	backend.width = width;
 	backend.height = height;
