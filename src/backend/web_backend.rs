@@ -83,6 +83,14 @@ fn on_context_menu(event: event::ContextMenuEvent) {
 	event.prevent_default();
 }
 
+fn on_key_down(event: event::KeyDownEvent) {
+	game().on_key_press(convert_key_code(&event.key()), event.shift_key().into(), event.ctrl_key().into());
+}
+
+fn on_key_up(event: event::KeyUpEvent) {
+	game().on_key_press(None, event.shift_key().into(), event.ctrl_key().into());
+}
+
 fn on_resize(_: event::ResizeEvent) {
 	resize();
 }
@@ -189,6 +197,8 @@ impl BackendStyle for Backend {
 		window().add_event_listener(on_mouse_move);
 		window().add_event_listener(on_mouse_wheel);
 		window().add_event_listener(on_context_menu);
+		window().add_event_listener(on_key_down);
+		window().add_event_listener(on_key_up);
 
 		resize();
 
@@ -308,6 +318,32 @@ impl BackendStyle for Backend {
 			x, y,
 			16.0, 16.0
 		).expect("Unable to draw image");
+	}
+}
+
+fn convert_key_code(key: &str) -> Option<ui::KeyCode> {
+	use ui::KeyCode::*;
+	use crate::world::Dir;
+
+	match key {
+		"Space" => Some(Space),
+		"Escape" => Some(Escape),
+		"Enter" => Some(Enter),
+		"Backspace"	=> Some(Backspace),
+		"Delete" => Some(Delete),
+		"ArrowUp" => Some(Arrow(Dir::Up)),
+		"ArrowDown" => Some(Arrow(Dir::Down)),
+		"ArrowLeft" => Some(Arrow(Dir::Left)),
+		"ArrowRight" => Some(Arrow(Dir::Right)),
+		c if c.len() == 1 => {
+			let c = c.chars().next().unwrap();
+			if let Some(num) = c.to_digit(10) {
+				Some(Number(num as usize))
+			} else {
+				Some(Letter(c))
+			}
+		}
+		_ => None
 	}
 }
 

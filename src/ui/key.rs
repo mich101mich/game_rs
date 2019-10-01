@@ -6,7 +6,7 @@ pub enum KeyCode {
 	Letter(char),
 	Space,
 	Escape,
-	Return,
+	Enter,
 	Backspace,
 	Delete,
 	Arrow(Dir),

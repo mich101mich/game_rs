@@ -90,6 +90,11 @@ impl<'a> BackendStyle for Backend<'a> {
 						}
 						game.on_key_press(convert_key_code(code), shift.into(), ctrl.into());
 					}
+					KeyReleased {
+						ctrl, shift, ..
+					} => {
+						game.on_key_press(None, shift.into(), ctrl.into());
+					}
 					Resized { width, height } => backend.window.set_view(&View::from_rect(
 						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
 					)),
@@ -244,10 +249,9 @@ impl<'a> BackendStyle for Backend<'a> {
 	}
 }
 
-use sfml::window::Key;
-use ui::KeyCode;
-fn convert_key_code(key: sfml::window::Key) -> Option<KeyCode> {
-	use Key::*;
+fn convert_key_code(key: sfml::window::Key) -> Option<ui::KeyCode> {
+	use sfml::window::Key::*;
+	use ui::KeyCode;
 
 	match key {
 		c if c >= A && c <= Z => Some(KeyCode::Letter((c as u8 - A as u8 + b'a') as char)),
@@ -256,14 +260,14 @@ fn convert_key_code(key: sfml::window::Key) -> Option<KeyCode> {
 
 		Space => Some(KeyCode::Space),
 		Escape => Some(KeyCode::Escape),
-		Return => Some(KeyCode::Return),
+		Return => Some(KeyCode::Enter),
 		BackSpace => Some(KeyCode::Backspace),
 		Delete => Some(KeyCode::Delete),
 
-		Left => Some(KeyCode::Arrow(Dir::LEFT)),
-		Right => Some(KeyCode::Arrow(Dir::RIGHT)),
-		Up => Some(KeyCode::Arrow(Dir::UP)),
-		Down => Some(KeyCode::Arrow(Dir::DOWN)),
+		Left => Some(KeyCode::Arrow(Dir::Left)),
+		Right => Some(KeyCode::Arrow(Dir::Right)),
+		Up => Some(KeyCode::Arrow(Dir::Up)),
+		Down => Some(KeyCode::Arrow(Dir::Down)),
 
 		_ => None,
 	}

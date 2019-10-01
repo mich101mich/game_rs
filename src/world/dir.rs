@@ -1,9 +1,9 @@
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Dir {
-	UP,
-	RIGHT,
-	DOWN,
-	LEFT,
+	Up,
+	Right,
+	Down,
+	Left,
 }
 pub use Dir::*;
 
@@ -18,7 +18,7 @@ impl Dir {
 		self.into()
 	}
 	pub fn all() -> impl DoubleEndedIterator<Item = Dir> {
-		[UP, RIGHT, DOWN, LEFT].iter().copied()
+		[Up, Right, Down, Left].iter().copied()
 	}
 	pub fn as_delta(self) -> (isize, isize) {
 		[(0, -1), (1, 0), (0, 1), (-1, 0)][self.num()]
@@ -30,10 +30,10 @@ macro_rules! impl_from_into {
 		impl From<$type> for Dir {
 			fn from(val: $type) -> Dir {
 				match val {
-					0 => UP,
-					1 => RIGHT,
-					2 => DOWN,
-					3 => LEFT,
+					0 => Up,
+					1 => Right,
+					2 => Down,
+					3 => Left,
 					n => panic!("Invalid Dir value: {}", n),
 				}
 			}

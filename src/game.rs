@@ -43,6 +43,8 @@ impl Game {
 
 		backend.fill(Color::rgb(128, 128, 128));
 		self.world.draw(backend);
+
+		self.mouse.draw(backend);
 	}
 
 	pub fn end(&mut self) {}
