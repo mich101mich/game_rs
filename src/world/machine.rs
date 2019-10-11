@@ -1,4 +1,4 @@
-use super::{Dir, TilePos, World};
+use super::{Dir, TilePos, World, TILE_SIZE};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MachineType {
@@ -48,7 +48,7 @@ impl Machine {
 		if !self.power {
 			backend.fill_rect(
 				self.pos,
-				(16.0, 16.0),
+				(TILE_SIZE as f32, TILE_SIZE as f32),
 				Color::rgba(0, 0, 0, 140),
 			);
 			backend.draw_asset((3, 0), self.pos);

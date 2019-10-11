@@ -1,15 +1,14 @@
-use super::{
-	log, ui,
-	world::{GamePos, MachineType, Material, Mineral, World},
-	Backend, BackendStyle, Color,
-};
+use super::{log, ui, world::*, Backend, BackendStyle, Color};
+use std::collections::HashSet;
 
 pub struct Game {
 	pub mouse: ui::Mouse,
 	pub world: World,
+	pub scheduler: Scheduler,
 	pub minerals: Vec<usize>,
-	pub update_interval: f32,
-	pub update_carry: f32,
+	selection: Selection,
+	update_interval: f32,
+	update_carry: f32,
 }
 
 impl Game {
@@ -18,7 +17,9 @@ impl Game {
 		let mut ret = Game {
 			mouse: ui::Mouse::new(),
 			world: World::new(64, 64),
+			scheduler: Scheduler::new(),
 			minerals: std::iter::repeat(0).take(Mineral::count()).collect(),
+			selection: Selection::Nothing,
 			update_interval: 1.0,
 			update_carry: 0.0,
 		};
@@ -30,6 +31,10 @@ impl Game {
 		}
 
 		ret.world.add_machine((32 + 3, 32 + 3), MachineType::Lab);
+
+		ret.scheduler.workers.push(Worker {
+			pos: (33, 33).into(),
+		});
 
 		ret
 	}
@@ -44,10 +49,46 @@ impl Game {
 		backend.fill(Color::rgb(128, 128, 128));
 		self.world.draw(backend);
 
+		self.scheduler.draw(backend);
+
 		self.mouse.draw(backend);
 	}
 
 	pub fn end(&mut self) {}
+
+	pub fn on_mouse_event(&mut self, event: ui::MouseEvent) {
+		use ui::SelectionInfo::*;
+		match self.mouse.on_event(event) {
+			Click(pos) => {
+				// TODO: search for machine, worker, tile
+			}
+			Brush(pos, radius) => {
+				let mut selected = HashSet::new();
+				let left = (pos.x - radius).floor() as usize / TILE_SIZE;
+				let top = (pos.y - radius).floor() as usize / TILE_SIZE;
+				let right = (pos.x + radius).ceil() as usize / TILE_SIZE;
+				let bottom = (pos.y + radius).ceil() as usize / TILE_SIZE;
+
+				for y in top..bottom {
+					for x in left..right {
+						// check drillable
+						if self.world.is_solid((x, y)) {
+							selected.insert((x, y).into());
+						}
+					}
+				}
+
+				self.selection = Selection::Walls(selected);
+			}
+			AppendBrush(pos, radius) => {
+				// TODO: copy code from above
+			}
+			Area(top_left, bottom_right) => {
+				// TODO: find workers
+			}
+			NoChange => (),
+		}
+	}
 
 	pub fn on_key_press(
 		&mut self,
@@ -62,4 +103,11 @@ impl Game {
 	pub fn get_mineral(&self, mineral: Mineral) -> usize {
 		self.minerals[mineral.num()]
 	}
+}
+
+enum Selection {
+	Nothing,
+	Workers(HashSet<usize>),
+	Walls(HashSet<TilePos>),
+	Machine(TilePos),
 }

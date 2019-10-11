@@ -130,19 +130,19 @@ impl World {
 		// only draw the connections between Nodes once
 		let mut visited = HashSet::new();
 		use super::GamePos;
-		let offset = super::GAME_SCALE as f32 / 2.0;
+		let offset = super::TILE_SIZE as f32 / 2.0;
 		let o = GamePos::new(offset, offset);
 
 		{
 			let chunk_size = self.hpa_map.config().chunk_size;
 			let chunk_width = self.width() / chunk_size;
 			let chunk_height = self.height() / chunk_size;
-			let w = (self.width() * super::GAME_SCALE) as f32;
-			let h = (self.height() * super::GAME_SCALE) as f32;
-			for y in (1..chunk_height).map(|y| (y * chunk_size * super::GAME_SCALE) as f32) {
+			let w = (self.width() * super::TILE_SIZE) as f32;
+			let h = (self.height() * super::TILE_SIZE) as f32;
+			for y in (1..chunk_height).map(|y| (y * chunk_size * super::TILE_SIZE) as f32) {
 				backend.draw_line((0.0, y), (w, y), Color::rgb(255, 0, 0));
 			}
-			for x in (1..chunk_width).map(|x| (x * chunk_size * super::GAME_SCALE) as f32) {
+			for x in (1..chunk_width).map(|x| (x * chunk_size * super::TILE_SIZE) as f32) {
 				backend.draw_line((x, 0.0), (x, h), Color::rgb(255, 0, 0));
 			}
 		}

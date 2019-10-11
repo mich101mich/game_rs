@@ -1,4 +1,4 @@
-pub const GAME_SCALE: usize = 16;
+pub const TILE_SIZE: usize = 16;
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct GamePos {
@@ -123,8 +123,8 @@ quick_impl!(From<[usize; 2]> for TilePos: [x, y] => TilePos {x, y});
 quick_impl!(From<TilePos> for (usize, usize): TilePos {x, y} => (x, y));
 quick_impl!(From<TilePos> for [usize; 2]: TilePos {x, y} => [x, y]);
 
-quick_impl!(From<TilePos> for GamePos: TilePos {x, y} => GamePos {x: (x * GAME_SCALE) as f32, y: (y * GAME_SCALE) as f32});
-quick_impl!(From<GamePos> for TilePos: GamePos {x, y} => TilePos {x: x as usize / GAME_SCALE, y: y as usize / GAME_SCALE});
+quick_impl!(From<TilePos> for GamePos: TilePos {x, y} => GamePos {x: (x * TILE_SIZE) as f32, y: (y * TILE_SIZE) as f32});
+quick_impl!(From<GamePos> for TilePos: GamePos {x, y} => TilePos {x: x as usize / TILE_SIZE, y: y as usize / TILE_SIZE});
 
 use std::fmt;
 impl fmt::Display for GamePos {

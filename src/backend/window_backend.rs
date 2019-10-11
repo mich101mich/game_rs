@@ -1,7 +1,7 @@
 use super::{BackendStyle, TEXT_SIZE};
 use crate::{
 	ui,
-	world::{Dir, GamePos},
+	world::{Dir, GamePos, TILE_SIZE},
 	Game,
 };
 use sfml::{
@@ -32,8 +32,8 @@ impl<'a> BackendStyle for Backend<'a> {
 		let texture = Texture::from_image(&image).expect("Unable to load Assets");
 
 		let background = RenderTexture::new(
-			game.world.width() as u32 * 16,
-			game.world.height() as u32 * 16,
+			(game.world.width() * TILE_SIZE) as u32,
+			(game.world.height() * TILE_SIZE) as u32,
 			false,
 		)
 		.unwrap();
@@ -54,14 +54,19 @@ impl<'a> BackendStyle for Backend<'a> {
 		};
 
 		{
-			let rows = image.size().y / 16;
-			let cols = image.size().x / 16;
+			let rows = image.size().y as usize / TILE_SIZE;
+			let cols = image.size().x as usize / TILE_SIZE;
 
 			for y in 0..rows {
 				let mut row = Vec::with_capacity(cols as usize);
 				for x in 0..cols {
 					let mut sprite = Sprite::with_texture(&texture);
-					sprite.set_texture_rect(&IntRect::new(x as i32 * 16, y as i32 * 16, 16, 16));
+					sprite.set_texture_rect(&IntRect::new(
+						(x * TILE_SIZE) as i32,
+						(y * TILE_SIZE) as i32,
+						TILE_SIZE as i32,
+						TILE_SIZE as i32,
+					));
 					row.push(sprite);
 				}
 				backend.assets.push(row);
@@ -90,44 +95,37 @@ impl<'a> BackendStyle for Backend<'a> {
 						}
 						game.on_key_press(convert_key_code(code), shift.into(), ctrl.into());
 					}
-					KeyReleased {
-						ctrl, shift, ..
-					} => {
+					KeyReleased { ctrl, shift, .. } => {
 						game.on_key_press(None, shift.into(), ctrl.into());
 					}
 					Resized { width, height } => backend.window.set_view(&View::from_rect(
 						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
 					)),
 					MouseWheelScrolled { delta, .. } => {
-						game.mouse.on_event(ui::MouseEvent::Scroll(-delta))
+						game.on_mouse_event(ui::MouseEvent::Scroll(-delta))
 					}
 					MouseButtonPressed { button, .. } => {
 						if button == window::mouse::Button::Left {
-							game.mouse
-								.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
+							game.on_mouse_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
 						} else if button == window::mouse::Button::Right {
-							game.mouse
-								.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
+							game.on_mouse_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
 						}
 					}
 					MouseButtonReleased { button, .. } => {
 						if button == window::mouse::Button::Left {
-							game.mouse
-								.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
+							game.on_mouse_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
 						} else if button == window::mouse::Button::Right {
-							game.mouse
-								.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
+							game.on_mouse_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
 						}
 					}
 					MouseMoved { x, y } => {
 						let delta = ((x - mouse.0) as f32, (y - mouse.1) as f32);
 						mouse = (x, y);
-						game.mouse.on_event(ui::MouseEvent::Move(delta.into()));
+						game.on_mouse_event(ui::MouseEvent::Move(delta.into()));
 					}
 					_ => {}
 				}
 			}
-
 
 			let mouse = &game.mouse;
 			let view = View::from_rect(&FloatRect::new(

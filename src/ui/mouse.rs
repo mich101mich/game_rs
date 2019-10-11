@@ -6,6 +6,7 @@ pub struct Mouse {
 	pos: GamePos,
 	start_pos: Option<GamePos>,
 	brush_size: f32,
+	is_single_click: bool,
 
 	left: ButtonState,
 	right: ButtonState,
@@ -25,38 +26,52 @@ impl Mouse {
 		}
 	}
 
-	pub fn on_event(&mut self, event: MouseEvent) {
+	pub fn on_event(&mut self, event: MouseEvent) -> SelectionInfo {
 		use MouseEvent::*;
 		match event {
 			Move(delta) => {
+				self.pos += delta;
+				self.is_single_click = false;
 				if self.left_down() {
-					if self.shift_down() {
-						// TODO: add to selection
-					} else if !self.ctrl_down() || self.start_pos.is_none() {
+					if self.brush_mode() {
+						return SelectionInfo::AppendBrush(self.pos, self.brush_size);
+					} else if !self.area_mode() || self.start_pos.is_none() {
 						let moved = delta / self.scale;
 						self.offset += moved;
 					}
 				}
-				self.pos += delta;
+				SelectionInfo::NoChange
 			}
 			ClickDown(button) => {
 				self.set_button(button, ButtonState::Down);
-				if button == MouseButton::Left && self.ctrl_down() {
-					self.start_pos = Some(self.pos);
+				self.is_single_click = true;
+				if button == MouseButton::Left {
+					if self.brush_mode() {
+						return SelectionInfo::Brush(self.pos, self.brush_size);
+					} else if self.area_mode() {
+						self.start_pos = Some(self.pos);
+					}
 				}
+				SelectionInfo::NoChange
 			}
 			ClickUp(button) => {
+				if self.is_single_click {
+					return SelectionInfo::Click(self.pos);
+				}
 				self.set_button(button, ButtonState::Up);
 				if button == MouseButton::Left && self.ctrl_down() {
-					self.start_pos = None;
-					// TODO: handle selection
+					if let Some(start_pos) = self.start_pos.take() {
+						return SelectionInfo::Area(start_pos, self.pos);
+					}
 				}
+				SelectionInfo::NoChange
 			}
 			Scroll(delta) => {
 				let factor = 1.0 - delta / 10.0;
 				self.scale *= factor;
 
 				self.offset -= self.pos / (self.scale / factor) - self.pos / self.scale;
+				SelectionInfo::NoChange
 			}
 		}
 	}
@@ -82,11 +97,7 @@ impl Mouse {
 			if let Some(start) = start {
 				let tl = GamePos::new(pos.x.min(start.x), pos.y.min(start.y));
 				let br = GamePos::new(pos.x.max(start.x), pos.y.max(start.y));
-				backend.fill_rect(
-					tl,
-					br - tl,
-					SELECT_COLOR,
-				);
+				backend.fill_rect(tl, br - tl, SELECT_COLOR);
 			}
 		}
 	}
@@ -110,6 +121,14 @@ impl Mouse {
 			}
 		}
 	}
+
+	pub fn brush_mode(&self) -> bool {
+		self.shift_down()
+	}
+	pub fn area_mode(&self) -> bool {
+		self.ctrl_down() && !self.brush_mode()
+	}
+
 	pub fn left(&self) -> ButtonState {
 		self.left
 	}
@@ -155,4 +174,13 @@ pub enum MouseEvent {
 	ClickDown(MouseButton),
 	ClickUp(MouseButton),
 	Scroll(f32),
+}
+
+#[derive(Debug)]
+pub enum SelectionInfo {
+	NoChange,
+	Click(GamePos),
+	Brush(GamePos, f32),
+	AppendBrush(GamePos, f32),
+	Area(GamePos, GamePos),
 }

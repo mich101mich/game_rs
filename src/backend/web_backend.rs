@@ -1,5 +1,5 @@
 use super::{BackendStyle, TEXT_SIZE};
-use crate::{Game, world::GamePos, ui};
+use crate::{Game, world::{GamePos, TILE_SIZE}, ui};
 
 use stdweb::{unstable::TryInto, web::html_element::*, web::*, traits::*};
 
@@ -51,7 +51,7 @@ fn on_mouse_wheel(event: event::MouseWheelEvent) {
 		Line => event.delta_y() / 3.0,
 		Page => event.delta_y(),
 	};
-	game().mouse.on_event(ui::MouseEvent::Scroll(delta as f32));
+	game().on_mouse_event(ui::MouseEvent::Scroll(delta as f32));
 }
 
 fn on_mouse_move(event: event::MouseMoveEvent) {
@@ -60,21 +60,21 @@ fn on_mouse_move(event: event::MouseMoveEvent) {
 	let y = event.client_y();
 	let delta = ((x - mouse.0) as f32, (y - mouse.1) as f32);
 	*mouse = (x, y);
-	game().mouse.on_event(ui::MouseEvent::Move(delta.into()));
+	game().on_mouse_event(ui::MouseEvent::Move(delta.into()));
 }
 
 fn on_mouse_down(event: event::MouseDownEvent) {
 	if event.button() == event::MouseButton::Left {
-		game().mouse.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
+		game().on_mouse_event(ui::MouseEvent::ClickDown(ui::MouseButton::Left));
 	} else if event.button() == event::MouseButton::Right {
-		game().mouse.on_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
+		game().on_mouse_event(ui::MouseEvent::ClickDown(ui::MouseButton::Right));
 	}
 }
 fn on_mouse_up(event: event::MouseUpEvent) {
 	if event.button() == event::MouseButton::Left {
-		game().mouse.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
+		game().on_mouse_event(ui::MouseEvent::ClickUp(ui::MouseButton::Left));
 	} else if event.button() == event::MouseButton::Right {
-		game().mouse.on_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
+		game().on_mouse_event(ui::MouseEvent::ClickUp(ui::MouseButton::Right));
 	}
 }
 
@@ -152,8 +152,8 @@ impl BackendStyle for Backend {
 			.try_into()
 			.unwrap();
 
-		background_canvas.set_width(game.world.width() as u32 * 16);
-		background_canvas.set_height(game.world.height() as u32 * 16);
+		background_canvas.set_width((game.world.width() * TILE_SIZE) as u32);
+		background_canvas.set_height((game.world.height() * TILE_SIZE) as u32);
 
 		let assets: &[u8] = include_bytes!("../../assets/assets.png");
 		let assets = base64::encode(assets);
@@ -289,10 +289,10 @@ impl BackendStyle for Backend {
 		#[rustfmt::skip]
 		self.ctx.draw_image_s(
 			self.assets.clone(),
-			(id * 16) as f64, (row * 16) as f64,
-			16.0, 16.0,
+			(id * TILE_SIZE) as f64, (row * TILE_SIZE) as f64,
+			TILE_SIZE as f64, TILE_SIZE as f64,
 			x, y,
-			16.0, 16.0
+			TILE_SIZE as f64, TILE_SIZE as f64
 		).expect("Unable to draw image");
 	}
 
@@ -304,7 +304,7 @@ impl BackendStyle for Backend {
 
 	fn clear_background(&mut self) {
 		self.bg.set_fill_style_color("black");
-		self.bg.fill_rect(0.0, 0.0, self.background_canvas.width() as f64 * 16.0, self.background_canvas.height() as f64 * 16.0);
+		self.bg.fill_rect(0.0, 0.0, self.background_canvas.width() as f64, self.background_canvas.height() as f64);
 	}
 
 	fn draw_to_background<T: Into<GamePos>>(&mut self, (row, id): (usize, usize), pos: T) {
@@ -313,10 +313,10 @@ impl BackendStyle for Backend {
 		#[rustfmt::skip]
 		self.bg.draw_image_s(
 			self.assets.clone(),
-			(id * 16) as f64, (row * 16) as f64,
-			16.0, 16.0,
+			(id * TILE_SIZE) as f64, (row * TILE_SIZE) as f64,
+			TILE_SIZE as f64, TILE_SIZE as f64,
 			x, y,
-			16.0, 16.0
+			TILE_SIZE as f64, TILE_SIZE as f64
 		).expect("Unable to draw image");
 	}
 }
