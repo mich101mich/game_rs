@@ -16,6 +16,9 @@ rand = "0.7.2"
 [dependencies.hierarchical_pathfinding]
 path = "../hierarchical_pathfinding"
 
+[dependencies.hole_vec]
+path = "./hole_vec"
+
 # only for cargo check and rls
 [target.'cfg(all(target_arch = "wasm32", not(cargo_web)))'.dependencies]
 wasm-bindgen = "0.2.43"
