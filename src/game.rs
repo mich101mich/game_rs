@@ -32,9 +32,7 @@ impl Game {
 
 		ret.world.add_machine((32 + 3, 32 + 3), MachineType::Lab);
 
-		ret.scheduler.workers.push(Worker {
-			pos: (33, 33).into(),
-		});
+		ret.scheduler.add_worker((33, 33).into());
 
 		ret
 	}

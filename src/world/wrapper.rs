@@ -1,10 +1,16 @@
 use super::{Dir, Grid, Machine, MachineType, Material, TilePos};
-use hierarchical_pathfinding::prelude::*;
+use hierarchical_pathfinding::{
+	prelude::{ManhattanNeighborhood, PathCache, PathCacheConfig},
+	AbstractPath,
+};
 use std::collections::{HashMap, HashSet};
+
+pub type Neighborhood = ManhattanNeighborhood;
+pub type Path = AbstractPath<Neighborhood>;
 
 pub struct World {
 	grid: Grid,
-	hpa_map: PathCache<ManhattanNeighborhood>,
+	hpa_map: PathCache<Neighborhood>,
 	dirty: bool,
 	changes: HashSet<TilePos>,
 	machines: HashMap<TilePos, Machine>,
@@ -15,7 +21,7 @@ impl World {
 	pub fn new(width: usize, height: usize) -> Self {
 		let grid = Grid::new(width, height);
 
-		let neighborhood = ManhattanNeighborhood::new(width, height);
+		let neighborhood = Neighborhood::new(width, height);
 		let hpa_map = PathCache::new(
 			(width, height),
 			grid.cost_fn(),
