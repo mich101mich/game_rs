@@ -1,12 +1,12 @@
 pub const TILE_SIZE: usize = 16;
 
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct GamePos {
 	pub x: f32,
 	pub y: f32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash)]
+#[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub struct TilePos {
 	pub x: usize,
 	pub y: usize,

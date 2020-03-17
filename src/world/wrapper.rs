@@ -1,9 +1,9 @@
 use super::{Dir, Grid, Machine, MachineType, Material, TilePos};
+use crate::{HashMap, HashSet};
 use hierarchical_pathfinding::{
 	prelude::{ManhattanNeighborhood, PathCache, PathCacheConfig},
 	AbstractPath,
 };
-use std::collections::{HashMap, HashSet};
 
 pub type Neighborhood = ManhattanNeighborhood;
 pub type Path = AbstractPath<Neighborhood>;
@@ -31,13 +31,13 @@ impl World {
 			},
 		);
 
-		World {
+		Self {
 			grid,
 			hpa_map,
 			dirty: true,
-			changes: HashSet::new(),
-			machines: HashMap::new(),
-			spawns: HashSet::new(),
+			changes: HashSet::default(),
+			machines: HashMap::default(),
+			spawns: HashSet::default(),
 		}
 	}
 
@@ -134,7 +134,7 @@ impl World {
 		}
 
 		// only draw the connections between Nodes once
-		let mut visited = HashSet::new();
+		let mut visited = HashSet::default();
 		use super::GamePos;
 		let offset = super::TILE_SIZE as f32 / 2.0;
 		let o = GamePos::new(offset, offset);
@@ -177,7 +177,7 @@ impl World {
 			}
 		}
 		for (pos, change) in source_change {
-			self.machine_mut(pos).unwrap().set_power_source(change);
+			self.machine_at_mut(pos).unwrap().set_power_source(change);
 		}
 		for machine in self.machines.values_mut() {
 			machine.update(spawn_has_power);
@@ -192,10 +192,10 @@ impl World {
 		self.set(pos, Material::Machine);
 		self.machines.insert(pos, Machine::new(pos, machine));
 	}
-	pub fn machine(&self, pos: TilePos) -> Option<&Machine> {
+	pub fn machine_at(&self, pos: TilePos) -> Option<&Machine> {
 		self.machines.get(&pos)
 	}
-	pub fn machine_mut(&mut self, pos: TilePos) -> Option<&mut Machine> {
+	pub fn machine_at_mut(&mut self, pos: TilePos) -> Option<&mut Machine> {
 		self.machines.get_mut(&pos)
 	}
 }

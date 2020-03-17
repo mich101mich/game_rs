@@ -1,4 +1,3 @@
-
 #[cfg(target_arch = "wasm32")]
 mod web_backend;
 #[cfg(target_arch = "wasm32")]
@@ -9,12 +8,11 @@ mod window_backend;
 #[cfg(not(target_arch = "wasm32"))]
 pub use window_backend::{Backend, Color};
 
-use crate::{Game, world::GamePos};
+use crate::{world::GamePos, Game};
 
 pub const TEXT_SIZE: usize = 16;
 
 pub trait BackendStyle {
-
 	fn start(game: Game);
 
 	/// Returns the Width of the Screen in Pixels
@@ -31,12 +29,24 @@ pub trait BackendStyle {
 	/// Fill a Rectangle at `pos` with `size`
 	fn fill_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, color: Color);
 	/// Draw the outline of a Rectangle at `pos` with `size`
-	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, line_width: f32, color: Color);
+	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		size: T2,
+		line_width: f32,
+		color: Color,
+	);
 
 	/// Fill a Circle between centered at `pos`, with `radius`
 	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Color);
 	/// Draw the outline of a Circle between centered at `pos`, with `radius`
-	fn stroke_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, line_width: f32, color: Color);
+	fn stroke_circle<T: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		radius: f32,
+		line_width: f32,
+		color: Color,
+	);
 
 	/// Draws `text` at `pos`
 	fn draw_text<T: Into<GamePos>>(&mut self, text: &str, pos: T, color: Color);

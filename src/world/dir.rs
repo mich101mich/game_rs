@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Dir {
 	Up,
 	Right,

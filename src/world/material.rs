@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Material {
 	Air,
 	Bedrock,
@@ -28,6 +28,7 @@ impl Material {
 	}
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mineral {
 	Ore,
 	Crystal,

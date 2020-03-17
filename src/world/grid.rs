@@ -11,16 +11,11 @@ pub struct Grid {
 }
 
 impl Grid {
-	pub fn new(width: usize, height: usize) -> Grid {
-		let grid = std::iter::repeat(std::iter::repeat(Material::Bedrock).take(height).collect())
-			.take(width)
-			.collect();
+	pub fn new(width: usize, height: usize) -> Self {
+		let grid = vec![vec![Material::Bedrock; height]; width];
+		let visible = vec![vec![false; height]; width];
 
-		let visible = std::iter::repeat(std::iter::repeat(false).take(height).collect())
-			.take(width)
-			.collect();
-
-		let mut ret = Grid {
+		let mut ret = Self {
 			width,
 			height,
 			grid,
@@ -37,7 +32,7 @@ impl Grid {
 	}
 
 	pub fn get<T: Into<TilePos>>(&self, pos: T) -> Option<Material> {
-		let TilePos {x, y} = pos.into();
+		let TilePos { x, y } = pos.into();
 		self.grid.get(x).and_then(|v| v.get(y).copied())
 	}
 
@@ -138,7 +133,7 @@ impl Grid {
 				if (mid.x as isize - x as isize).pow(2) + (mid.y as isize - y as isize).pow(2)
 					< (radius * radius) as isize
 				{
-			self[(x, y)] = Air;
+					self[(x, y)] = Air;
 				}
 			}
 		}
@@ -234,13 +229,13 @@ impl Grid {
 impl<T: Into<TilePos>> std::ops::Index<T> for Grid {
 	type Output = Material;
 	fn index(&self, index: T) -> &Material {
-		let TilePos {x, y} = index.into();
+		let TilePos { x, y } = index.into();
 		&self.grid[x][y]
 	}
 }
 impl<T: Into<TilePos>> std::ops::IndexMut<T> for Grid {
 	fn index_mut(&mut self, index: T) -> &mut Material {
-		let TilePos {x, y} = index.into();
+		let TilePos { x, y } = index.into();
 		&mut self.grid[x][y]
 	}
 }

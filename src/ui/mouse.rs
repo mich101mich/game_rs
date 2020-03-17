@@ -18,8 +18,8 @@ pub struct Mouse {
 }
 
 impl Mouse {
-	pub fn new() -> Mouse {
-		Mouse {
+	pub fn new() -> Self {
+		Self {
 			scale: 1.0,
 			brush_size: 30.0,
 			..Default::default()
@@ -42,24 +42,22 @@ impl Mouse {
 				}
 				SelectionInfo::NoChange
 			}
-			ClickDown(button) => {
-				self.set_button(button, ButtonState::Down);
+			ClickDown(MouseButton::Left) => {
+				self.set_button(MouseButton::Left, ButtonState::Down);
 				self.is_single_click = true;
-				if button == MouseButton::Left {
-					if self.brush_mode() {
-						return SelectionInfo::Brush(self.pos, self.brush_size);
-					} else if self.area_mode() {
-						self.start_pos = Some(self.pos);
-					}
+				if self.brush_mode() {
+					return SelectionInfo::Brush(self.pos, self.brush_size);
+				} else if self.area_mode() {
+					self.start_pos = Some(self.pos);
 				}
 				SelectionInfo::NoChange
 			}
-			ClickUp(button) => {
+			ClickUp(MouseButton::Left) => {
+				self.set_button(MouseButton::Left, ButtonState::Up);
 				if self.is_single_click {
 					return SelectionInfo::Click(self.pos);
 				}
-				self.set_button(button, ButtonState::Up);
-				if button == MouseButton::Left && self.ctrl_down() {
+				if self.ctrl_down() {
 					if let Some(start_pos) = self.start_pos.take() {
 						return SelectionInfo::Area(start_pos, self.pos);
 					}
@@ -71,6 +69,16 @@ impl Mouse {
 				self.scale *= factor;
 
 				self.offset -= self.pos / (self.scale / factor) - self.pos / self.scale;
+				SelectionInfo::NoChange
+			}
+			ClickDown(MouseButton::Right) => {
+				self.set_button(MouseButton::Right, ButtonState::Down);
+				// right mouse ignored for now
+				SelectionInfo::NoChange
+			}
+			ClickUp(MouseButton::Right) => {
+				self.set_button(MouseButton::Right, ButtonState::Up);
+				// right mouse ignored for now
 				SelectionInfo::NoChange
 			}
 		}

@@ -1,20 +1,14 @@
-use super::{Exec, GamePos, TilePos};
-use crate::{Backend, BackendStyle, Color};
+use super::Exec;
+use crate::{
+	world::{GamePos, TilePos},
+	Backend, BackendStyle, Color,
+};
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct WorkerID(usize);
+crate::make_id!(WorkerID, Worker);
 
-impl std::fmt::Display for WorkerID {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Worker({})", self.0)
-	}
-}
-impl From<WorkerID> for usize {
-	fn from(id: WorkerID) -> usize {
-		id.0
-	}
-}
-
+#[derive(Debug)]
 pub struct Worker {
 	pub id: WorkerID,
 	pub pos: TilePos,
@@ -22,9 +16,9 @@ pub struct Worker {
 }
 
 impl Worker {
-	pub fn new(id: usize, pos: TilePos) -> Self {
-		Worker {
-			id: WorkerID(id),
+	pub fn new(id: WorkerID, pos: TilePos) -> Self {
+		Self {
+			id,
 			pos,
 			plan: vec![],
 		}

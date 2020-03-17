@@ -1,6 +1,6 @@
 use super::{Dir, TilePos, World, TILE_SIZE};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum MachineType {
 	Spawn,
 	Lab,
@@ -30,8 +30,8 @@ pub struct Machine {
 }
 
 impl Machine {
-	pub fn new(pos: TilePos, machine_type: MachineType) -> Machine {
-		Machine {
+	pub fn new(pos: TilePos, machine_type: MachineType) -> Self {
+		Self {
 			pos,
 			machine_type,
 			power_source: None,
@@ -82,7 +82,7 @@ impl Machine {
 		let mut sources = Dir::all().filter_map(|dir| {
 			world
 				.tile_in_dir(self.pos, dir)
-				.and_then(|tile| world.machine(tile))
+				.and_then(|tile| world.machine_at(tile))
 				.and_then(Machine::get_power_source)
 				.map(|spawn| (spawn, dir))
 		});
@@ -98,7 +98,7 @@ impl Machine {
 		if let Some((_, spawn_dir)) = source {
 			source = world
 				.tile_in_dir(self.pos, spawn_dir)
-				.and_then(|p| world.machine(p))
+				.and_then(|p| world.machine_at(p))
 				.and_then(Machine::get_power_source)
 				.map(|spawn_pos| (spawn_pos, spawn_dir));
 		}

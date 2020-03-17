@@ -1,10 +1,9 @@
-use super::{log, ui, world::*, Backend, BackendStyle, Color};
-use std::collections::HashSet;
+use super::{entity::*, world::*, *};
 
 pub struct Game {
 	pub mouse: ui::Mouse,
 	pub world: World,
-	pub scheduler: Scheduler,
+	pub entities: Entities,
 	pub minerals: Vec<usize>,
 	selection: Selection,
 	update_interval: f32,
@@ -14,11 +13,11 @@ pub struct Game {
 impl Game {
 	pub fn new() -> Self {
 		log!("Starting...");
-		let mut ret = Game {
+		let mut ret = Self {
 			mouse: ui::Mouse::new(),
 			world: World::new(64, 64),
-			scheduler: Scheduler::new(),
-			minerals: std::iter::repeat(0).take(Mineral::count()).collect(),
+			entities: Entities::new(),
+			minerals: vec![0; Mineral::count()],
 			selection: Selection::Nothing,
 			update_interval: 1.0,
 			update_carry: 0.0,
@@ -32,7 +31,11 @@ impl Game {
 
 		ret.world.add_machine((32 + 3, 32 + 3), MachineType::Lab);
 
-		ret.scheduler.add_worker((33, 33).into());
+		ret.entities.add_worker((33, 33).into());
+
+		// <temp>
+		ret.minerals[Mineral::Crystal.num()] = 10;
+		// </temp>
 
 		ret
 	}
@@ -41,13 +44,14 @@ impl Game {
 		self.update_carry += delta_time;
 		if self.update_carry >= self.update_interval {
 			self.world.update(self.get_mineral(Mineral::Crystal) > 0);
+			self.entities.update(&mut self.world);
 			self.update_carry = 0.0;
 		}
 
 		backend.fill(Color::rgb(128, 128, 128));
 		self.world.draw(backend);
 
-		self.scheduler.draw(backend);
+		self.entities.draw(backend);
 
 		self.mouse.draw(backend);
 	}
@@ -58,10 +62,17 @@ impl Game {
 		use ui::SelectionInfo::*;
 		match self.mouse.on_event(event) {
 			Click(pos) => {
-				// TODO: search for machine, worker, tile
+				let w_pos: TilePos = pos.into();
+				if let Some(worker) = self.entities.worker_at(w_pos) {
+					self.selection = Selection::Workers(std::iter::once(worker.id).collect());
+				} else if self.world.machine_at(w_pos).is_some() {
+					self.selection = Selection::Machine(w_pos);
+				} else {
+					self.selection = Selection::Tile(w_pos);
+				}
 			}
 			Brush(pos, radius) => {
-				let mut selected = HashSet::new();
+				let mut selected = HashSet::default();
 				let left = (pos.x - radius).floor() as usize / TILE_SIZE;
 				let top = (pos.y - radius).floor() as usize / TILE_SIZE;
 				let right = (pos.x + radius).ceil() as usize / TILE_SIZE;
@@ -103,9 +114,11 @@ impl Game {
 	}
 }
 
+#[derive(Debug)]
 enum Selection {
 	Nothing,
-	Workers(HashSet<usize>),
+	Workers(HashSet<WorkerID>),
 	Walls(HashSet<TilePos>),
 	Machine(TilePos),
+	Tile(TilePos),
 }

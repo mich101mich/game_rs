@@ -1,11 +1,10 @@
-
 mod mouse;
 pub use mouse::*;
 
 mod key;
 pub use key::KeyCode;
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonState {
 	Up,
 	Down,

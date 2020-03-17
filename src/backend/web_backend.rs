@@ -1,7 +1,11 @@
 use super::{BackendStyle, TEXT_SIZE};
-use crate::{Game, world::{GamePos, TILE_SIZE}, ui};
+use crate::{
+	ui,
+	world::{GamePos, TILE_SIZE},
+	Game,
+};
 
-use stdweb::{unstable::TryInto, web::html_element::*, web::*, traits::*};
+use stdweb::{traits::*, unstable::TryInto, web::html_element::*, web::*};
 
 static mut GAME: Option<Game> = None;
 static mut BACKEND: Option<Backend> = None;
@@ -28,7 +32,7 @@ fn backend() -> &'static mut Backend {
 fn update(time: f64) {
 	window().request_animation_frame(update);
 
-	let delta = time - unsafe{ TIME };
+	let delta = time - unsafe { TIME };
 	unsafe { TIME = time };
 
 	let backend = backend();
@@ -84,7 +88,11 @@ fn on_context_menu(event: event::ContextMenuEvent) {
 }
 
 fn on_key_down(event: event::KeyDownEvent) {
-	game().on_key_press(convert_key_code(&event.key()), event.shift_key().into(), event.ctrl_key().into());
+	game().on_key_press(
+		convert_key_code(&event.key()),
+		event.shift_key().into(),
+		event.ctrl_key().into(),
+	);
 }
 
 fn on_key_up(event: event::KeyUpEvent) {
@@ -99,11 +107,15 @@ fn resize() {
 
 	let width: f64 = js! {
 		return @{ backend.canvas.as_ref() }.getBoundingClientRect().width
-	}.try_into().unwrap();
+	}
+	.try_into()
+	.unwrap();
 
 	let height: f64 = js! {
 		return @{ backend.canvas.as_ref() }.getBoundingClientRect().height
-	}.try_into().unwrap();
+	}
+	.try_into()
+	.unwrap();
 
 	let width = width as u32;
 	let height = height as u32;
@@ -133,8 +145,14 @@ pub struct Backend {
 }
 impl BackendStyle for Backend {
 	fn start(game: Game) {
-
-		document().body().unwrap().set_attribute("style", "margin: 0;  width: 100vw;  height: 99.9vh; background-color: black;").unwrap();
+		document()
+			.body()
+			.unwrap()
+			.set_attribute(
+				"style",
+				"margin: 0;  width: 100vw;  height: 99.9vh; background-color: black;",
+			)
+			.unwrap();
 
 		let canvas: CanvasElement = document()
 			.create_element("canvas")
@@ -142,7 +160,9 @@ impl BackendStyle for Backend {
 			.try_into()
 			.unwrap();
 
-		canvas.set_attribute("style", "width: 100%; height: calc(100% - 3px);").unwrap();
+		canvas
+			.set_attribute("style", "width: 100%; height: calc(100% - 3px);")
+			.unwrap();
 
 		document().body().unwrap().append_child(&canvas);
 
@@ -216,7 +236,8 @@ impl BackendStyle for Backend {
 		self.ctx.save();
 		self.ctx.set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 		self.ctx.set_fill_style_color(&color.to_css());
-		self.ctx.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
+		self.ctx
+			.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
 		self.ctx.restore();
 	}
 
@@ -239,7 +260,13 @@ impl BackendStyle for Backend {
 		self.ctx.set_fill_style_color(&color.to_css());
 		self.ctx.fill_rect(x, y, size.0, size.1);
 	}
-	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, line_width: f32, color: Color) {
+	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		size: T2,
+		line_width: f32,
+		color: Color,
+	) {
 		let (x, y) = pos.into().into();
 		let size: (f64, f64) = size.into().into();
 
@@ -253,26 +280,24 @@ impl BackendStyle for Backend {
 
 		self.ctx.set_fill_style_color(&color.to_css());
 		self.ctx.begin_path();
-		self.ctx.arc(
-			x, y,
-			radius as f64,
-			0.0, 2.0 * std::f64::consts::PI,
-			false,
-		);
+		self.ctx
+			.arc(x, y, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
 		self.ctx.fill(Default::default());
 	}
-	fn stroke_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, line_width: f32, color: Color) {
+	fn stroke_circle<T: Into<GamePos>>(
+		&mut self,
+		pos: T,
+		radius: f32,
+		line_width: f32,
+		color: Color,
+	) {
 		let (x, y) = pos.into().into();
 
 		self.ctx.set_stroke_style_color(&color.to_css());
 		self.ctx.set_line_width(line_width as f64);
 		self.ctx.begin_path();
-		self.ctx.arc(
-			x, y,
-			radius as f64,
-			0.0, 2.0 * std::f64::consts::PI,
-			false,
-		);
+		self.ctx
+			.arc(x, y, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
 		self.ctx.stroke();
 	}
 
@@ -304,7 +329,12 @@ impl BackendStyle for Backend {
 
 	fn clear_background(&mut self) {
 		self.bg.set_fill_style_color("black");
-		self.bg.fill_rect(0.0, 0.0, self.background_canvas.width() as f64, self.background_canvas.height() as f64);
+		self.bg.fill_rect(
+			0.0,
+			0.0,
+			self.background_canvas.width() as f64,
+			self.background_canvas.height() as f64,
+		);
 	}
 
 	fn draw_to_background<T: Into<GamePos>>(&mut self, (row, id): (usize, usize), pos: T) {
@@ -322,14 +352,14 @@ impl BackendStyle for Backend {
 }
 
 fn convert_key_code(key: &str) -> Option<ui::KeyCode> {
-	use ui::KeyCode::*;
 	use crate::world::Dir;
+	use ui::KeyCode::*;
 
 	match key {
 		"Space" => Some(Space),
 		"Escape" => Some(Escape),
 		"Enter" => Some(Enter),
-		"Backspace"	=> Some(Backspace),
+		"Backspace" => Some(Backspace),
 		"Delete" => Some(Delete),
 		"ArrowUp" => Some(Arrow(Dir::Up)),
 		"ArrowDown" => Some(Arrow(Dir::Down)),
@@ -343,11 +373,11 @@ fn convert_key_code(key: &str) -> Option<ui::KeyCode> {
 				Some(Letter(c))
 			}
 		}
-		_ => None
+		_ => None,
 	}
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Color {
 	pub r: u8,
 	pub g: u8,
@@ -363,6 +393,12 @@ impl Color {
 		Color { r, g, b, a }
 	}
 	pub fn to_css(self) -> String {
-		format!("rgba({}, {}, {}, {})", self.r, self.g, self.b, self.a as f64 / 255.0)
+		format!(
+			"rgba({}, {}, {}, {})",
+			self.r,
+			self.g,
+			self.b,
+			self.a as f64 / 255.0
+		)
 	}
 }
