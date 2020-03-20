@@ -8,7 +8,7 @@ mod window_backend;
 #[cfg(not(target_arch = "wasm32"))]
 pub use window_backend::{Backend, Color};
 
-use crate::{world::GamePos, Game};
+use crate::{ui::Hitbox, world::GamePos, Game};
 
 pub const TEXT_SIZE: usize = 16;
 
@@ -25,6 +25,21 @@ pub trait BackendStyle {
 
 	/// Draw a Line from `start` to `end`
 	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Color);
+	/// Fill a Hitbox
+	fn fill_hitbox(&mut self, hitbox: Hitbox, color: Color) {
+		match hitbox {
+			Hitbox::Rect { pos, size } => self.fill_rect(pos, size, color),
+			Hitbox::Circle { pos, radius } => self.fill_circle(pos, radius, color),
+		}
+	}
+
+	/// Draw the outline of a Hitbox
+	fn stroke_hitbox(&mut self, hitbox: Hitbox, line_width: f32, color: Color) {
+		match hitbox {
+			Hitbox::Rect { pos, size } => self.stroke_rect(pos, size, line_width, color),
+			Hitbox::Circle { pos, radius } => self.stroke_circle(pos, radius, line_width, color),
+		}
+	}
 
 	/// Fill a Rectangle at `pos` with `size`
 	fn fill_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, color: Color);

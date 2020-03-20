@@ -1,4 +1,5 @@
 use crate::{
+	ui::{Clickable, Hitbox},
 	world::{GamePos, Mineral},
 	Backend, BackendStyle, Color,
 };
@@ -20,6 +21,21 @@ impl Item {
 	}
 
 	pub fn draw(&self, backend: &mut Backend) {
-		backend.fill_circle(self.pos, 4.0, Color::rgb(255, 0, 0));
+		backend.fill_hitbox(
+			self.hitbox(),
+			match self.mineral {
+				Mineral::Crystal => Color::rgb(87, 255, 23),
+				Mineral::Ore => Color::rgb(165, 110, 31),
+			},
+		);
+	}
+}
+
+impl Clickable for Item {
+	fn hitbox(&self) -> Hitbox {
+		Hitbox::Circle {
+			pos: self.pos,
+			radius: 3.0,
+		}
 	}
 }

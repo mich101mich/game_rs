@@ -1,5 +1,6 @@
 use super::Exec;
 use crate::{
+	ui::{Clickable, Hitbox},
 	world::{GamePos, TilePos},
 	Backend, BackendStyle, Color,
 };
@@ -24,10 +25,16 @@ impl Worker {
 		}
 	}
 	pub fn draw(&self, backend: &mut Backend) {
-		backend.fill_rect(
-			GamePos::from(self.pos) + GamePos::new(2.0, 2.0),
-			(12.0, 12.0),
-			Color::rgb(255, 0, 0),
-		);
+		backend.fill_hitbox(self.hitbox(), Color::rgb(255, 0, 0));
+	}
+}
+
+impl Clickable for Worker {
+	fn hitbox(&self) -> Hitbox {
+		let pos = GamePos::from(self.pos);
+		Hitbox::Rect {
+			pos: pos + GamePos::new(2.0, 2.0),
+			size: GamePos::new(12.0, 12.0),
+		}
 	}
 }

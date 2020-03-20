@@ -4,6 +4,9 @@ pub use mouse::*;
 mod key;
 pub use key::KeyCode;
 
+mod clickable;
+pub use clickable::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonState {
 	Up,

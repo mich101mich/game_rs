@@ -16,15 +16,47 @@ impl GamePos {
 	pub fn new(x: f32, y: f32) -> Self {
 		Self { x, y }
 	}
+	pub fn dist(self, other: GamePos) -> f32 {
+		self.dist_sq(other).sqrt()
+	}
+	pub fn dist_sq(self, other: GamePos) -> f32 {
+		(self - other).norm_sq()
+	}
+	pub fn norm(self) -> f32 {
+		self.norm_sq().sqrt()
+	}
+	pub fn norm_sq(self) -> f32 {
+		self * self
+	}
 }
 
 impl TilePos {
 	pub fn new(x: usize, y: usize) -> Self {
 		Self { x, y }
 	}
+	pub fn dist(self, other: TilePos) -> usize {
+		let dx = if self.x < other.x {
+			other.x - self.x
+		} else {
+			self.x - other.x
+		};
+		let dy = if self.y < other.y {
+			other.y - self.y
+		} else {
+			self.y - other.y
+		};
+		dx + dy
+	}
 }
 
 use std::ops::*;
+
+impl Mul<GamePos> for GamePos {
+	type Output = f32;
+	fn mul(self, other: GamePos) -> Self::Output {
+		self.x * other.x + self.y * other.y
+	}
+}
 
 macro_rules! impl_op {
 	($target: ty, $trait: ty, $f: ident, $op: tt) => {

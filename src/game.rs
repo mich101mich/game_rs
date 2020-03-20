@@ -33,7 +33,7 @@ impl Game {
 
 		ret.entities.add_worker((33, 33).into());
 
-		// <temp>
+		// TODO: <temp>
 		ret.minerals[Mineral::Crystal.num()] = 10;
 		// </temp>
 
@@ -52,6 +52,17 @@ impl Game {
 		self.world.draw(backend);
 
 		self.entities.draw(backend);
+
+		// TODO: <temp>
+		entity::Item::new(
+			99.into(),
+			GamePos::new(490.0, 490.0),
+			world::Mineral::Crystal,
+		)
+		.draw(backend);
+		entity::Item::new(100.into(), GamePos::new(480.0, 490.0), world::Mineral::Ore)
+			.draw(backend);
+		// </temp>
 
 		self.mouse.draw(backend);
 	}
