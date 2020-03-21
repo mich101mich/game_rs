@@ -246,7 +246,7 @@ impl BackendStyle for Backend {
 		let end: (f64, f64) = end.into().into();
 
 		self.ctx.set_stroke_style_color(&color.to_css());
-		self.ctx.set_line_width(1.0);
+		self.ctx.set_line_width(1.0 / game().mouse.scale() as f64);
 		self.ctx.begin_path();
 		self.ctx.move_to(x, y);
 		self.ctx.line_to(end.0, end.1);
@@ -386,10 +386,10 @@ pub struct Color {
 }
 
 impl Color {
-	pub fn rgb(r: u8, g: u8, b: u8) -> Color {
+	pub const fn rgb(r: u8, g: u8, b: u8) -> Color {
 		Color { r, g, b, a: 255 }
 	}
-	pub fn rgba(r: u8, g: u8, b: u8, a: u8) -> Color {
+	pub const fn rgba(r: u8, g: u8, b: u8, a: u8) -> Color {
 		Color { r, g, b, a }
 	}
 	pub fn to_css(self) -> String {

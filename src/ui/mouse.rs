@@ -13,7 +13,7 @@ pub struct Mouse {
 	shift: ButtonState,
 	ctrl: ButtonState,
 
-	scale: f32,
+	pub scale: f32,
 	offset: GamePos,
 }
 
@@ -34,7 +34,7 @@ impl Mouse {
 				self.is_single_click = false;
 				if self.left_down() {
 					if self.brush_mode() {
-						return SelectionInfo::AppendBrush(self.pos, self.brush_size);
+						return SelectionInfo::Brush(self.pos_world(), self.brush_size, true);
 					} else if !self.area_mode() || self.start_pos.is_none() {
 						let moved = delta / self.scale;
 						self.offset += moved;
@@ -46,20 +46,23 @@ impl Mouse {
 				self.set_button(MouseButton::Left, ButtonState::Down);
 				self.is_single_click = true;
 				if self.brush_mode() {
-					return SelectionInfo::Brush(self.pos, self.brush_size);
+					return SelectionInfo::Brush(self.pos_world(), self.brush_size, false);
 				} else if self.area_mode() {
-					self.start_pos = Some(self.pos);
+					self.start_pos = Some(self.pos_world());
 				}
 				SelectionInfo::NoChange
 			}
 			ClickUp(MouseButton::Left) => {
 				self.set_button(MouseButton::Left, ButtonState::Up);
-				if self.is_single_click {
-					return SelectionInfo::Click(self.pos);
+				if self.is_single_click && !self.brush_mode() {
+					return SelectionInfo::Click(self.pos_world());
 				}
 				if self.ctrl_down() {
 					if let Some(start_pos) = self.start_pos.take() {
-						return SelectionInfo::Area(start_pos, self.pos);
+						let pos = self.pos_world();
+						let tl = (start_pos.x.min(pos.x), start_pos.y.min(pos.y)).into();
+						let br = (start_pos.x.max(pos.x), start_pos.y.max(pos.y)).into();
+						return SelectionInfo::Area(tl, br);
 					}
 				}
 				SelectionInfo::NoChange
@@ -84,13 +87,15 @@ impl Mouse {
 		}
 	}
 
+	pub fn pos_world(&self) -> GamePos {
+		self.screen_to_world(self.pos)
+	}
 	pub fn screen_to_world(&self, pos: GamePos) -> GamePos {
 		pos / self.scale - self.offset
 	}
 
 	pub fn draw(&self, backend: &mut Backend) {
-		let pos = self.screen_to_world(self.pos);
-		let start = self.start_pos.map(|p| self.screen_to_world(p));
+		let pos = self.pos_world();
 
 		const SELECT_COLOR: Color = Color {
 			r: 180,
@@ -102,7 +107,7 @@ impl Mouse {
 		if self.shift_down() {
 			backend.fill_circle(pos, self.brush_size, SELECT_COLOR);
 		} else if self.ctrl_down() {
-			if let Some(start) = start {
+			if let Some(start) = self.start_pos {
 				let tl = GamePos::new(pos.x.min(start.x), pos.y.min(start.y));
 				let br = GamePos::new(pos.x.max(start.x), pos.y.max(start.y));
 				backend.fill_rect(tl, br - tl, SELECT_COLOR);
@@ -188,7 +193,6 @@ pub enum MouseEvent {
 pub enum SelectionInfo {
 	NoChange,
 	Click(GamePos),
-	Brush(GamePos, f32),
-	AppendBrush(GamePos, f32),
+	Brush(GamePos, f32, bool),
 	Area(GamePos, GamePos),
 }

@@ -1,24 +1,24 @@
-use super::{entity::*, world::*, *};
+use super::{entity::*, ui::*, world::*, *};
 
 pub struct Game {
-	pub mouse: ui::Mouse,
+	pub mouse: Mouse,
 	pub world: World,
 	pub entities: Entities,
 	pub minerals: Vec<usize>,
-	selection: Selection,
-	update_interval: f32,
-	update_carry: f32,
+	pub menu: Menu,
+	pub update_interval: f32,
+	pub update_carry: f32,
 }
 
 impl Game {
 	pub fn new() -> Self {
 		log!("Starting...");
 		let mut ret = Self {
-			mouse: ui::Mouse::new(),
+			mouse: Mouse::new(),
 			world: World::new(64, 64),
 			entities: Entities::new(),
 			minerals: vec![0; Mineral::count()],
-			selection: Selection::Nothing,
+			menu: Menu::new(),
 			update_interval: 1.0,
 			update_carry: 0.0,
 		};
@@ -35,6 +35,9 @@ impl Game {
 
 		// TODO: <temp>
 		ret.minerals[Mineral::Crystal.num()] = 10;
+		ret.entities
+			.add_item((490.0, 490.0).into(), Mineral::Crystal);
+		ret.entities.add_item((480.0, 490.0).into(), Mineral::Ore);
 		// </temp>
 
 		ret
@@ -53,69 +56,89 @@ impl Game {
 
 		self.entities.draw(backend);
 
-		// TODO: <temp>
-		entity::Item::new(
-			99.into(),
-			GamePos::new(490.0, 490.0),
-			world::Mineral::Crystal,
-		)
-		.draw(backend);
-		entity::Item::new(100.into(), GamePos::new(480.0, 490.0), world::Mineral::Ore)
-			.draw(backend);
-		// </temp>
+		self.menu.draw(backend, &self.entities);
 
 		self.mouse.draw(backend);
 	}
 
 	pub fn end(&mut self) {}
 
-	pub fn on_mouse_event(&mut self, event: ui::MouseEvent) {
-		use ui::SelectionInfo::*;
+	pub fn on_mouse_event(&mut self, event: MouseEvent) {
+		use SelectionInfo::*;
 		match self.mouse.on_event(event) {
 			Click(pos) => {
 				let w_pos: TilePos = pos.into();
-				if let Some(worker) = self.entities.worker_at(w_pos) {
-					self.selection = Selection::Workers(std::iter::once(worker.id).collect());
+				self.menu.selection = if let Some(entity) = self.entities.entity_at(pos) {
+					match entity {
+						Clicked::Item(id) => Selection::Item(id),
+						Clicked::Worker(id) => Selection::Workers(std::iter::once(id).collect()),
+					}
 				} else if self.world.machine_at(w_pos).is_some() {
-					self.selection = Selection::Machine(w_pos);
+					Selection::Machine(w_pos)
+				} else if self.world.is_visible(w_pos) {
+					Selection::Ground(w_pos)
 				} else {
-					self.selection = Selection::Tile(w_pos);
-				}
+					Selection::Nothing
+				};
 			}
-			Brush(pos, radius) => {
-				let mut selected = HashSet::default();
-				let left = (pos.x - radius).floor() as usize / TILE_SIZE;
-				let top = (pos.y - radius).floor() as usize / TILE_SIZE;
-				let right = (pos.x + radius).ceil() as usize / TILE_SIZE;
-				let bottom = (pos.y + radius).ceil() as usize / TILE_SIZE;
+			Brush(pos, radius, append) => {
+				let tl: TilePos = (pos - GamePos::new(radius, radius)).into();
+				let br: TilePos = (pos + GamePos::new(radius, radius) + GamePos::TILE).into();
+				let hitbox = Hitbox::Circle { pos, radius };
 
-				for y in top..bottom {
-					for x in left..right {
-						// check drillable
-						if self.world.is_solid((x, y)) {
-							selected.insert((x, y).into());
+				let world = &self.world;
+				let tiles = tl
+					.rect_iter(br)
+					.filter(|&tile| {
+						hitbox.intersects(Hitbox::Rect {
+							pos: tile.into(),
+							size: GamePos::TILE,
+						})
+					})
+					.filter(|&tile| world.is_visible(tile) && world.is_solid(tile));
+
+				if !append {
+					self.menu.selection = Selection::Walls(HashSet::default());
+				}
+
+				let selection = match &mut self.menu.selection {
+					Selection::Walls(sel) => sel,
+					s => {
+						*s = Selection::Walls(HashSet::default());
+						match s {
+							Selection::Walls(sel) => sel,
+							_ => unreachable!(),
 						}
 					}
-				}
+				};
 
-				self.selection = Selection::Walls(selected);
-			}
-			AppendBrush(pos, radius) => {
-				// TODO: copy code from above
+				for tile in tiles {
+					selection.insert(tile);
+				}
 			}
 			Area(top_left, bottom_right) => {
-				// TODO: find workers
+				let hitbox = Hitbox::Rect {
+					pos: top_left,
+					size: bottom_right - top_left,
+				};
+				crate::log!("{:?}", hitbox);
+				crate::log!("{:?}", self.entities.workers().next().unwrap().hitbox());
+				crate::log!("{:?}", self.entities.workers().next().unwrap().hitbox().intersects(hitbox));
+
+				let selection = self
+					.entities
+					.workers()
+					.filter(|w| hitbox.intersects(w.hitbox()))
+					.map(|w| w.id)
+					.collect();
+
+				self.menu.selection = Selection::Workers(selection);
 			}
 			NoChange => (),
 		}
 	}
 
-	pub fn on_key_press(
-		&mut self,
-		code: Option<ui::KeyCode>,
-		shift: ui::ButtonState,
-		ctrl: ui::ButtonState,
-	) {
+	pub fn on_key_press(&mut self, code: Option<KeyCode>, shift: ButtonState, ctrl: ButtonState) {
 		self.mouse.set_shift(shift);
 		self.mouse.set_ctrl(ctrl);
 	}
@@ -123,13 +146,4 @@ impl Game {
 	pub fn get_mineral(&self, mineral: Mineral) -> usize {
 		self.minerals[mineral.num()]
 	}
-}
-
-#[derive(Debug)]
-enum Selection {
-	Nothing,
-	Workers(HashSet<WorkerID>),
-	Walls(HashSet<TilePos>),
-	Machine(TilePos),
-	Tile(TilePos),
 }

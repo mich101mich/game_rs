@@ -155,14 +155,19 @@ impl World {
 
 		for node in self.hpa_map.inspect_nodes() {
 			let pos: GamePos = TilePos::from(node.pos()).into();
-			backend.stroke_rect(pos, TilePos::new(1, 1), 2.0, Color::rgba(255, 255, 0, 150));
+			backend.stroke_circle(
+				pos + GamePos::TILE / 2.0,
+				super::TILE_SIZE as f32 / 4.0,
+				1.0,
+				Color::rgba(255, 0, 0, 150),
+			);
 
 			visited.insert(node.id());
 
 			for neighbor in node.connected().filter(|n| !visited.contains(&n.id())) {
 				let other_pos: GamePos = TilePos::from(neighbor.pos()).into();
 
-				backend.draw_line(pos + o, other_pos + o, Color::rgba(127, 255, 0, 150));
+				backend.draw_line(pos + o, other_pos + o, Color::rgba(255, 0, 0, 150));
 			}
 		}
 

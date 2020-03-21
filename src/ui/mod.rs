@@ -4,6 +4,9 @@ pub use mouse::*;
 mod key;
 pub use key::KeyCode;
 
+mod menu;
+pub use menu::*;
+
 mod clickable;
 pub use clickable::*;
 

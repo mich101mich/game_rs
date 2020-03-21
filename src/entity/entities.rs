@@ -1,5 +1,6 @@
 use super::*;
 use crate::{
+	ui::{Clickable, Clicked},
 	world::{GamePos, Mineral, TilePos, World},
 	Backend,
 };
@@ -66,6 +67,19 @@ impl Entities {
 		self.scheduler.item_dirty(id);
 	}
 
+	pub fn entity_at(&self, pos: GamePos) -> Option<Clicked> {
+		self.items
+			.values()
+			.find(|i| i.contains(pos))
+			.map(|i| Clicked::Item(i.id))
+			.or_else(|| {
+				self.workers
+					.values()
+					.find(|w| w.contains(pos))
+					.map(|w| Clicked::Worker(w.id))
+			})
+	}
+
 	pub fn worker(&self, id: WorkerID) -> &Worker {
 		&self.workers[usize::from(id)]
 	}
@@ -85,16 +99,29 @@ impl Entities {
 		self.workers.values_mut()
 	}
 
-	pub fn job(&self, id: JobID) -> Option<&Job> {
-		self.jobs.get(id.into())
+	pub fn job(&self, id: JobID) -> &Job {
+		&self.jobs[usize::from(id)]
 	}
-	pub fn job_mut(&mut self, id: JobID) -> Option<&mut Job> {
-		self.jobs.get_mut(id.into())
+	pub fn job_mut(&mut self, id: JobID) -> &mut Job {
+		&mut self.jobs[usize::from(id)]
 	}
 	pub fn jobs(&self) -> impl Iterator<Item = &Job> {
 		self.jobs.values()
 	}
 	pub fn jobs_mut(&mut self) -> impl Iterator<Item = &mut Job> {
 		self.jobs.values_mut()
+	}
+
+	pub fn item(&self, id: ItemID) -> &Item {
+		&self.items[usize::from(id)]
+	}
+	pub fn item_mut(&mut self, id: ItemID) -> &mut Item {
+		&mut self.items[usize::from(id)]
+	}
+	pub fn items(&self) -> impl Iterator<Item = &Item> {
+		self.items.values()
+	}
+	pub fn items_mut(&mut self) -> impl Iterator<Item = &mut Item> {
+		self.items.values_mut()
 	}
 }

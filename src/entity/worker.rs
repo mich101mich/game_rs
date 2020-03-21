@@ -1,4 +1,4 @@
-use super::Exec;
+use super::{Exec, Item};
 use crate::{
 	ui::{Clickable, Hitbox},
 	world::{GamePos, TilePos},
@@ -14,6 +14,7 @@ pub struct Worker {
 	pub id: WorkerID,
 	pub pos: TilePos,
 	pub plan: Vec<Exec>,
+	item: Option<Item>,
 }
 
 impl Worker {
@@ -22,10 +23,15 @@ impl Worker {
 			id,
 			pos,
 			plan: vec![],
+			item: None,
 		}
 	}
+
 	pub fn draw(&self, backend: &mut Backend) {
-		backend.fill_hitbox(self.hitbox(), Color::rgb(255, 0, 0));
+		backend.fill_hitbox(self.hitbox(), Color::rgb(250, 191, 15));
+		if let Some(item) = self.item.as_ref() {
+			item.draw(backend);
+		}
 	}
 }
 
@@ -36,5 +42,8 @@ impl Clickable for Worker {
 			pos: pos + GamePos::new(2.0, 2.0),
 			size: GamePos::new(12.0, 12.0),
 		}
+	}
+	fn context_menu(&self) -> std::vec::Vec<(usize, String)> {
+		unimplemented!()
 	}
 }

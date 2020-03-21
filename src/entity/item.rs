@@ -10,9 +10,9 @@ crate::make_id!(ItemID, Item);
 
 #[derive(Debug)]
 pub struct Item {
-	id: ItemID,
-	pos: GamePos,
-	mineral: Mineral,
+	pub id: ItemID,
+	pub pos: GamePos,
+	pub mineral: Mineral,
 }
 
 impl Item {
@@ -37,5 +37,8 @@ impl Clickable for Item {
 			pos: self.pos,
 			radius: 3.0,
 		}
+	}
+	fn context_menu(&self) -> std::vec::Vec<(usize, String)> {
+		unimplemented!()
 	}
 }

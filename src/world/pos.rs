@@ -13,6 +13,12 @@ pub struct TilePos {
 }
 
 impl GamePos {
+	pub const UNIT: GamePos = GamePos { x: 1.0, y: 1.0 };
+	pub const TILE: GamePos = GamePos {
+		x: TILE_SIZE as f32,
+		y: TILE_SIZE as f32,
+	};
+
 	pub fn new(x: f32, y: f32) -> Self {
 		Self { x, y }
 	}
@@ -31,6 +37,8 @@ impl GamePos {
 }
 
 impl TilePos {
+	pub const UNIT: TilePos = TilePos { x: 1, y: 1 };
+
 	pub fn new(x: usize, y: usize) -> Self {
 		Self { x, y }
 	}
@@ -46,6 +54,36 @@ impl TilePos {
 			self.y - other.y
 		};
 		dx + dy
+	}
+	pub fn rect_iter(self, other: TilePos) -> RectIter {
+		let tl = TilePos::new(self.x.min(other.x), self.y.min(other.y));
+		let br = TilePos::new(self.x.max(other.x), self.y.max(other.y));
+		RectIter {
+			tl,
+			br,
+			current: tl,
+		}
+	}
+}
+pub struct RectIter {
+	tl: TilePos,
+	br: TilePos,
+	current: TilePos,
+}
+impl Iterator for RectIter {
+	type Item = TilePos;
+	fn next(&mut self) -> Option<Self::Item> {
+		let ret = Some(self.current);
+		if self.current.x == self.br.x {
+			if self.current.y == self.br.y {
+				return None;
+			}
+			self.current.x = self.tl.x;
+			self.current.y += 1;
+		} else {
+			self.current.x += 1;
+		}
+		ret
 	}
 }
 
