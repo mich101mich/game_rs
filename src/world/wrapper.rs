@@ -203,6 +203,11 @@ impl World {
 	pub fn machine_at_mut(&mut self, pos: TilePos) -> Option<&mut Machine> {
 		self.machines.get_mut(&pos)
 	}
+
+	pub fn path(&mut self, start: TilePos, end: TilePos) -> Option<Path> {
+		self.hpa_map
+			.find_path(start.into(), end.into(), self.grid.cost_fn())
+	}
 }
 
 impl std::ops::Deref for World {

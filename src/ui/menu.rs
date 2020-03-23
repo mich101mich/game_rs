@@ -42,7 +42,7 @@ impl Menu {
 				}
 			}
 			Machine(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR),
-			Ground(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR),
+			Air(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR),
 		}
 	}
 }
@@ -54,5 +54,5 @@ pub enum Selection {
 	Item(ItemID),
 	Walls(HashSet<TilePos>),
 	Machine(TilePos),
-	Ground(TilePos),
+	Air(TilePos),
 }

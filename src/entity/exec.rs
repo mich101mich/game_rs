@@ -3,6 +3,6 @@ use crate::world::Path;
 
 #[derive(Debug)]
 pub struct Exec {
-	path: Path,
-	job: JobID,
+	pub path: Path,
+	pub job: JobID,
 }

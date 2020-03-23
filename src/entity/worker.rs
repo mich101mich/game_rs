@@ -1,8 +1,8 @@
-use super::{Exec, Item};
+use super::{Item, JobID};
 use crate::{
 	ui::{Clickable, Hitbox},
-	world::{GamePos, TilePos},
-	Backend, BackendStyle, Color,
+	world::{GamePos, Path, TilePos},
+	Backend, BackendStyle, Color, Game,
 };
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -13,7 +13,9 @@ crate::make_id!(WorkerID, Worker);
 pub struct Worker {
 	pub id: WorkerID,
 	pub pos: TilePos,
-	pub plan: Vec<Exec>,
+	pub plan: Vec<JobID>,
+	pub next_target: Option<(TilePos, Path)>,
+	pub move_progress: Option<(TilePos, usize, usize)>,
 	item: Option<Item>,
 }
 
@@ -23,21 +25,32 @@ impl Worker {
 			id,
 			pos,
 			plan: vec![],
+			next_target: None,
+			move_progress: None,
 			item: None,
 		}
 	}
 
 	pub fn draw(&self, backend: &mut Backend) {
-		backend.fill_hitbox(self.hitbox(), Color::rgb(250, 191, 15));
+		let hitbox = self.hitbox();
+		backend.fill_hitbox(hitbox, Color::rgb(250, 191, 15));
 		if let Some(item) = self.item.as_ref() {
-			item.draw(backend);
+			item.draw_on_worker(backend, hitbox);
 		}
 	}
 }
 
 impl Clickable for Worker {
 	fn hitbox(&self) -> Hitbox {
-		let pos = GamePos::from(self.pos);
+		let mut pos = GamePos::from(self.pos);
+
+		if let Some((next_pos, progress, total)) = &self.move_progress {
+			let percent = (*progress as f32 + Game::time().fract()) / *total as f32;
+
+			let delta = (GamePos::from(*next_pos) - pos) * percent;
+			pos += delta;
+		}
+
 		Hitbox::Rect {
 			pos: pos + GamePos::new(2.0, 2.0),
 			size: GamePos::new(12.0, 12.0),

@@ -1,13 +1,17 @@
 use super::{entity::*, ui::*, world::*, *};
 
+static mut TIME: f32 = 0.0;
+
 pub struct Game {
 	pub mouse: Mouse,
 	pub world: World,
 	pub entities: Entities,
+	pub scheduler: Scheduler,
 	pub minerals: Vec<usize>,
 	pub menu: Menu,
 	pub update_interval: f32,
 	pub update_carry: f32,
+	pub tick: usize,
 }
 
 impl Game {
@@ -17,10 +21,12 @@ impl Game {
 			mouse: Mouse::new(),
 			world: World::new(64, 64),
 			entities: Entities::new(),
+			scheduler: Scheduler::new(),
 			minerals: vec![0; Mineral::count()],
 			menu: Menu::new(),
-			update_interval: 1.0,
+			update_interval: 0.2,
 			update_carry: 0.0,
+			tick: 0,
 		};
 
 		ret.world.add_machine((32, 32), MachineType::Spawn);
@@ -43,12 +49,25 @@ impl Game {
 		ret
 	}
 
+	/// Returns the current Game-tick. The fractal part is the current frame's progress to the next tick
+	pub fn time() -> f32 {
+		unsafe { TIME }
+	}
+
 	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
 		self.update_carry += delta_time;
 		if self.update_carry >= self.update_interval {
+			self.tick += 1;
+			if self.tick == std::usize::MAX {
+				self.tick = 0;
+			}
 			self.world.update(self.get_mineral(Mineral::Crystal) > 0);
-			self.entities.update(&mut self.world);
+			self.scheduler.update(&mut self.entities, &mut self.world);
 			self.update_carry = 0.0;
+		}
+
+		unsafe {
+			TIME = self.tick as f32 + self.update_carry / self.update_interval;
 		}
 
 		backend.fill(Color::rgb(128, 128, 128));
@@ -76,7 +95,11 @@ impl Game {
 				} else if self.world.machine_at(w_pos).is_some() {
 					Selection::Machine(w_pos)
 				} else if self.world.is_visible(w_pos) {
-					Selection::Ground(w_pos)
+					// TODO: <temp>
+					let mut w = self.entities.workers_mut().next().unwrap();
+					w.next_target = self.world.path(w.pos, w_pos).map(|path| (w_pos, path));
+					// </temp>
+					Selection::Air(w_pos)
 				} else {
 					Selection::Nothing
 				};
@@ -123,7 +146,15 @@ impl Game {
 				};
 				crate::log!("{:?}", hitbox);
 				crate::log!("{:?}", self.entities.workers().next().unwrap().hitbox());
-				crate::log!("{:?}", self.entities.workers().next().unwrap().hitbox().intersects(hitbox));
+				crate::log!(
+					"{:?}",
+					self.entities
+						.workers()
+						.next()
+						.unwrap()
+						.hitbox()
+						.intersects(hitbox)
+				);
 
 				let selection = self
 					.entities

@@ -8,7 +8,7 @@ mod backend;
 pub use backend::{Backend, BackendStyle, Color};
 
 mod game;
-pub use game::Game;
+pub use game::*;
 
 pub mod ui;
 
