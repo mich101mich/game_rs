@@ -1,7 +1,7 @@
 use crate::{
 	ui::{Clickable, Hitbox},
 	world::{GamePos, Mineral},
-	Backend, BackendStyle, Color,
+	Backend, BackendStyle, Colors,
 };
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -27,8 +27,8 @@ impl Item {
 			self.pos,
 			Item::RADIUS,
 			match self.mineral {
-				Mineral::Crystal => Color::rgb(87, 255, 23),
-				Mineral::Ore => Color::rgb(165, 110, 31),
+				Mineral::Crystal => Colors::Crystal,
+				Mineral::Ore => Colors::Ore,
 			},
 		);
 	}
@@ -42,8 +42,8 @@ impl Item {
 			pos + size / 2.0,
 			Item::RADIUS,
 			match self.mineral {
-				Mineral::Crystal => Color::rgb(87, 255, 23),
-				Mineral::Ore => Color::rgb(165, 110, 31),
+				Mineral::Crystal => Colors::Crystal,
+				Mineral::Ore => Colors::Ore,
 			},
 		);
 	}

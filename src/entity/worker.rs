@@ -2,7 +2,7 @@ use super::{Item, JobID};
 use crate::{
 	ui::{Clickable, Hitbox},
 	world::{GamePos, Path, TilePos},
-	Backend, BackendStyle, Color, Game,
+	Backend, BackendStyle, Colors, Game,
 };
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -33,7 +33,7 @@ impl Worker {
 
 	pub fn draw(&self, backend: &mut Backend) {
 		let hitbox = self.hitbox();
-		backend.fill_hitbox(hitbox, Color::rgb(250, 191, 15));
+		backend.fill_hitbox(hitbox, Colors::Worker);
 		if let Some(item) = self.item.as_ref() {
 			item.draw_on_worker(backend, hitbox);
 		}

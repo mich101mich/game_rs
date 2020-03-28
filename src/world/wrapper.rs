@@ -86,7 +86,7 @@ impl World {
 	}
 
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
-		use crate::{BackendStyle, Color};
+		use crate::{BackendStyle, Colors};
 		use Material::{Machine, Platform};
 
 		if self.dirty {
@@ -146,10 +146,10 @@ impl World {
 			let w = (self.width() * super::TILE_SIZE) as f32;
 			let h = (self.height() * super::TILE_SIZE) as f32;
 			for y in (1..chunk_height).map(|y| (y * chunk_size * super::TILE_SIZE) as f32) {
-				backend.draw_line((0.0, y), (w, y), Color::rgb(255, 0, 0));
+				backend.draw_line((0.0, y), (w, y), Colors::Chunk);
 			}
 			for x in (1..chunk_width).map(|x| (x * chunk_size * super::TILE_SIZE) as f32) {
-				backend.draw_line((x, 0.0), (x, h), Color::rgb(255, 0, 0));
+				backend.draw_line((x, 0.0), (x, h), Colors::Chunk);
 			}
 		}
 
@@ -159,7 +159,7 @@ impl World {
 				pos + GamePos::TILE / 2.0,
 				super::TILE_SIZE as f32 / 4.0,
 				1.0,
-				Color::rgba(255, 0, 0, 150),
+				Colors::Node,
 			);
 
 			visited.insert(node.id());
@@ -167,7 +167,7 @@ impl World {
 			for neighbor in node.connected().filter(|n| !visited.contains(&n.id())) {
 				let other_pos: GamePos = TilePos::from(neighbor.pos()).into();
 
-				backend.draw_line(pos + o, other_pos + o, Color::rgba(255, 0, 0, 150));
+				backend.draw_line(pos + o, other_pos + o, Colors::Node);
 			}
 		}
 

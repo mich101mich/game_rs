@@ -1,5 +1,5 @@
 use super::ButtonState;
-use crate::{world::GamePos, Backend, BackendStyle, Color};
+use crate::{world::GamePos, Backend, BackendStyle, Colors};
 
 #[derive(Debug, Default)]
 pub struct Mouse {
@@ -97,20 +97,13 @@ impl Mouse {
 	pub fn draw(&self, backend: &mut Backend) {
 		let pos = self.pos_world();
 
-		const SELECT_COLOR: Color = Color {
-			r: 180,
-			g: 180,
-			b: 255,
-			a: 180,
-		};
-
 		if self.shift_down() {
-			backend.fill_circle(pos, self.brush_size, SELECT_COLOR);
+			backend.fill_circle(pos, self.brush_size, Colors::Cursor);
 		} else if self.ctrl_down() {
 			if let Some(start) = self.start_pos {
 				let tl = GamePos::new(pos.x.min(start.x), pos.y.min(start.y));
 				let br = GamePos::new(pos.x.max(start.x), pos.y.max(start.y));
-				backend.fill_rect(tl, br - tl, SELECT_COLOR);
+				backend.fill_rect(tl, br - tl, Colors::Cursor);
 			}
 		}
 	}

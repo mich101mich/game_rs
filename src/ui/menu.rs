@@ -2,7 +2,7 @@ use crate::{
 	entity::{Entities, ItemID, WorkerID},
 	ui::Clickable,
 	world::{GamePos, TilePos},
-	Backend, BackendStyle, Color, HashSet,
+	Backend, BackendStyle, Colors, HashSet,
 };
 
 #[derive(Debug)]
@@ -18,31 +18,24 @@ impl Menu {
 	}
 
 	pub fn draw(&self, backend: &mut Backend, entities: &Entities) {
-		const COLOR: Color = Color {
-			r: 255,
-			g: 0,
-			b: 0,
-			a: 255,
-		};
-
 		use Selection::*;
 		match &self.selection {
 			Nothing => {}
 			Workers(workers) => {
 				for id in workers.iter() {
-					backend.stroke_hitbox(entities.worker(*id).hitbox(), 1.0, COLOR);
+					backend.stroke_hitbox(entities.worker(*id).hitbox(), 1.0, Colors::Highlight);
 				}
 			}
 			Item(id) => {
-				backend.stroke_hitbox(entities.item(*id).hitbox(), 1.0, COLOR);
+				backend.stroke_hitbox(entities.item(*id).hitbox(), 1.0, Colors::Highlight);
 			}
 			Walls(tiles) => {
 				for pos in tiles.iter() {
-					backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR);
+					backend.stroke_rect(*pos, GamePos::TILE, 1.0, Colors::Highlight);
 				}
 			}
-			Machine(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR),
-			Air(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, COLOR),
+			Machine(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, Colors::Highlight),
+			Air(pos) => backend.stroke_rect(*pos, GamePos::TILE, 1.0, Colors::Highlight),
 		}
 	}
 }

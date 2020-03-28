@@ -5,7 +5,7 @@
 extern crate stdweb;
 
 mod backend;
-pub use backend::{Backend, BackendStyle, Color};
+pub use backend::{Backend, BackendStyle, Colors};
 
 mod game;
 pub use game::*;

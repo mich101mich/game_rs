@@ -1,4 +1,4 @@
-use super::{BackendStyle, TEXT_SIZE};
+use super::{BackendStyle, Colors, TEXT_SIZE};
 use crate::{
 	ui,
 	world::{Dir, GamePos, TILE_SIZE},
@@ -160,24 +160,24 @@ impl<'a> BackendStyle for Backend<'a> {
 		self.window.size().y
 	}
 
-	fn fill(&mut self, color: Color) {
-		self.window.clear(&color);
+	fn fill(&mut self, color: Colors) {
+		self.window.clear(&color.into());
 	}
 
-	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Color) {
+	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Colors) {
 		let line = [
-			Vertex::with_pos_color(start.into(), color),
-			Vertex::with_pos_color(end.into(), color),
+			Vertex::with_pos_color(start.into(), color.into()),
+			Vertex::with_pos_color(end.into(), color.into()),
 		];
 		self.window
 			.draw_primitives(&line, PrimitiveType::Lines, Default::default());
 	}
 
-	fn fill_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, color: Color) {
+	fn fill_rect<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, pos: T, size: T2, color: Colors) {
 		let mut rect = RectangleShape::new();
 		rect.set_position(pos.into());
 		rect.set_size(size.into());
-		rect.set_fill_color(&color);
+		rect.set_fill_color(&color.into());
 		self.window.draw(&rect);
 	}
 	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(
@@ -185,25 +185,25 @@ impl<'a> BackendStyle for Backend<'a> {
 		pos: T,
 		size: T2,
 		line_width: f32,
-		color: Color,
+		color: Colors,
 	) {
 		let o = GamePos::new(line_width, line_width) / 2.0;
 
 		let mut rect = RectangleShape::new();
 		rect.set_position(pos.into() + o);
 		rect.set_size(size.into() - 2.0 * o);
-		rect.set_outline_color(&color);
+		rect.set_outline_color(&color.into());
 		rect.set_outline_thickness(line_width);
 		rect.set_fill_color(&Color::TRANSPARENT);
 		self.window.draw(&rect);
 	}
 
-	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Color) {
+	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Colors) {
 		let GamePos { x, y } = pos.into();
 
 		let mut circle = CircleShape::new(radius, 50);
 		circle.set_position((x - radius, y - radius));
-		circle.set_fill_color(&color);
+		circle.set_fill_color(&color.into());
 		self.window.draw(&circle);
 	}
 	fn stroke_circle<T: Into<GamePos>>(
@@ -211,23 +211,23 @@ impl<'a> BackendStyle for Backend<'a> {
 		pos: T,
 		radius: f32,
 		line_width: f32,
-		color: Color,
+		color: Colors,
 	) {
 		let GamePos { x, y } = pos.into();
 		let o = line_width / 2.0;
 
 		let mut circle = CircleShape::new(radius - o, 50);
 		circle.set_position((x - radius + o, y - radius + o));
-		circle.set_outline_color(&color);
+		circle.set_outline_color(&color.into());
 		circle.set_outline_thickness(line_width);
 		circle.set_fill_color(&Color::TRANSPARENT);
 		self.window.draw(&circle);
 	}
 
-	fn draw_text<T: Into<GamePos>>(&mut self, text: &str, pos: T, color: Color) {
+	fn draw_text<T: Into<GamePos>>(&mut self, text: &str, pos: T, color: Colors) {
 		let mut elem = Text::new(text, &self.font, TEXT_SIZE as u32);
 		elem.set_position(pos.into());
-		elem.set_fill_color(&color);
+		elem.set_fill_color(&color.into());
 		self.window.draw(&elem);
 	}
 

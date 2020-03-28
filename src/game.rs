@@ -70,7 +70,7 @@ impl Game {
 			TIME = self.tick as f32 + self.update_carry / self.update_interval;
 		}
 
-		backend.fill(Color::rgb(128, 128, 128));
+		backend.fill(Colors::Background);
 		self.world.draw(backend);
 
 		self.entities.draw(backend);
