@@ -18,6 +18,13 @@ macro_rules! log {
 	};
 }
 
+#[macro_export]
+macro_rules! err {
+	( $( $x: expr ),* ) => {
+		eprintln!($( $x ),*)
+	};
+}
+
 pub struct Backend<'a> {
 	window: RenderWindow,
 	font: Font,

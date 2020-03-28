@@ -17,7 +17,17 @@ macro_rules! log {
 		let s = format!($( $x ),*);
 		js!(
 			console.log(@{ s });
-		)
+		);
+	};
+}
+
+#[macro_export]
+macro_rules! err {
+	( $( $x: expr ),* ) => {
+		let s = format!($( $x ),*);
+		js!(
+			console.error(@{ s });
+		);
 	};
 }
 

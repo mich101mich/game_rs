@@ -45,7 +45,22 @@ pub mod world {
 pub use fnv::FnvHashMap as HashMap;
 pub use fnv::FnvHashSet as HashSet;
 
+#[cfg(target_arch = "wasm32")]
+fn log_panic(info: &std::panic::PanicInfo) {
+	let p = info.payload();
+	if let Some(s) = p.downcast_ref::<&str>() {
+		err!("panic occurred: {:?}", s);
+	} else if let Some(s) = p.downcast_ref::<String>() {
+		err!("panic occurred: {:?}", s);
+	} else {
+		err!("panic occurred");
+	}
+}
+
 fn main() {
+	#[cfg(target_arch = "wasm32")]
+	std::panic::set_hook(Box::new(log_panic));
+
 	let game = Game::new();
 
 	Backend::start(game);
