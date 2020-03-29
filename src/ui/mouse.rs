@@ -20,9 +20,18 @@ pub struct Mouse {
 impl Mouse {
 	pub fn new() -> Self {
 		Self {
-			scale: 1.0,
+			pos: GamePos::new(0.0, 0.0),
+			start_pos: None,
 			brush_size: 30.0,
-			..Default::default()
+			is_single_click: false,
+
+			left: ButtonState::default(),
+			right: ButtonState::default(),
+			shift: ButtonState::default(),
+			ctrl: ButtonState::default(),
+
+			scale: 1.0,
+			offset: GamePos::new(0.0, 0.0),
 		}
 	}
 
@@ -165,6 +174,9 @@ impl Mouse {
 	}
 	pub fn offset(&self) -> GamePos {
 		self.offset
+	}
+	pub fn set_center(&mut self, center: GamePos, screen_size: GamePos) {
+		self.offset = -center + screen_size / 2.0;
 	}
 }
 

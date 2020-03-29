@@ -15,6 +15,7 @@ pub struct World {
 	changes: HashSet<TilePos>,
 	machines: HashMap<TilePos, Machine>,
 	spawns: HashSet<TilePos>,
+	debug_mode: bool,
 }
 
 impl World {
@@ -38,6 +39,7 @@ impl World {
 			changes: HashSet::default(),
 			machines: HashMap::default(),
 			spawns: HashSet::default(),
+			debug_mode: false,
 		}
 	}
 
@@ -50,6 +52,11 @@ impl World {
 
 	pub fn set_dirty(&mut self) {
 		self.dirty = true;
+	}
+
+	pub fn toggle_debug_mode(&mut self) {
+		self.debug_mode = !self.debug_mode;
+		self.set_dirty();
 	}
 
 	pub fn set<T: Into<TilePos>>(&mut self, pos: T, mat: Material) {
@@ -96,7 +103,7 @@ impl World {
 
 			for y in 0..self.height() {
 				for x in 0..self.width() {
-					if self.grid.is_visible((x, y)) {
+					if self.debug_mode || self.grid.is_visible((x, y)) {
 						let mat = self.grid[(x, y)];
 						let pos = super::TilePos::new(x, y);
 						let (row, col) = if mat == Platform {
@@ -126,51 +133,45 @@ impl World {
 		}
 
 		// ============================= <Node Drawing> =============================
+		if self.debug_mode {
+			// only draw the connections between Nodes once
+			let mut visited = HashSet::default();
+			use super::GamePos;
+			let offset = super::TILE_SIZE as f32 / 2.0;
+			let o = GamePos::new(offset, offset);
 
-		if !self.changes.is_empty() {
-			let tiles: Vec<_> = self.changes.iter().map(|p| (*p).into()).collect();
-			self.changes.clear();
-			self.hpa_map.tiles_changed(&tiles, self.grid.cost_fn());
-		}
-
-		// only draw the connections between Nodes once
-		let mut visited = HashSet::default();
-		use super::GamePos;
-		let offset = super::TILE_SIZE as f32 / 2.0;
-		let o = GamePos::new(offset, offset);
-
-		{
-			let chunk_size = self.hpa_map.config().chunk_size;
-			let chunk_width = self.width() / chunk_size;
-			let chunk_height = self.height() / chunk_size;
-			let w = (self.width() * super::TILE_SIZE) as f32;
-			let h = (self.height() * super::TILE_SIZE) as f32;
-			for y in (1..chunk_height).map(|y| (y * chunk_size * super::TILE_SIZE) as f32) {
-				backend.draw_line((0.0, y), (w, y), Colors::Chunk);
+			{
+				let chunk_size = self.hpa_map.config().chunk_size;
+				let chunk_width = self.width() / chunk_size;
+				let chunk_height = self.height() / chunk_size;
+				let w = (self.width() * super::TILE_SIZE) as f32;
+				let h = (self.height() * super::TILE_SIZE) as f32;
+				for y in (1..chunk_height).map(|y| (y * chunk_size * super::TILE_SIZE) as f32) {
+					backend.draw_line((0.0, y), (w, y), Colors::Chunk);
+				}
+				for x in (1..chunk_width).map(|x| (x * chunk_size * super::TILE_SIZE) as f32) {
+					backend.draw_line((x, 0.0), (x, h), Colors::Chunk);
+				}
 			}
-			for x in (1..chunk_width).map(|x| (x * chunk_size * super::TILE_SIZE) as f32) {
-				backend.draw_line((x, 0.0), (x, h), Colors::Chunk);
-			}
-		}
 
-		for node in self.hpa_map.inspect_nodes() {
-			let pos: GamePos = TilePos::from(node.pos()).into();
-			backend.stroke_circle(
-				pos + GamePos::TILE / 2.0,
-				super::TILE_SIZE as f32 / 4.0,
-				1.0,
-				Colors::Node,
-			);
+			for node in self.hpa_map.inspect_nodes() {
+				let pos: GamePos = TilePos::from(node.pos()).into();
+				backend.stroke_circle(
+					pos + GamePos::TILE / 2.0,
+					super::TILE_SIZE as f32 / 4.0,
+					1.0,
+					Colors::Node,
+				);
 
-			visited.insert(node.id());
+				visited.insert(node.id());
 
-			for neighbor in node.connected().filter(|n| !visited.contains(&n.id())) {
-				let other_pos: GamePos = TilePos::from(neighbor.pos()).into();
+				for neighbor in node.connected().filter(|n| !visited.contains(&n.id())) {
+					let other_pos: GamePos = TilePos::from(neighbor.pos()).into();
 
-				backend.draw_line(pos + o, other_pos + o, Colors::Node);
+					backend.draw_line(pos + o, other_pos + o, Colors::Node);
+				}
 			}
 		}
-
 		// ============================= </Node Drawing> =============================
 	}
 
@@ -186,6 +187,11 @@ impl World {
 		}
 		for machine in self.machines.values_mut() {
 			machine.update(spawn_has_power);
+		}
+		if !self.changes.is_empty() {
+			let tiles: Vec<_> = self.changes.iter().map(|p| (*p).into()).collect();
+			self.changes.clear();
+			self.hpa_map.tiles_changed(&tiles, self.grid.cost_fn());
 		}
 	}
 

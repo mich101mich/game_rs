@@ -17,9 +17,13 @@ pub struct Game {
 impl Game {
 	pub fn new() -> Self {
 		log!("Starting...");
+
+		let size = 128;
+		let mid = size / 2;
+
 		let mut ret = Self {
 			mouse: Mouse::new(),
-			world: World::new(64, 64),
+			world: World::new(size, size),
 			entities: Entities::new(),
 			scheduler: Scheduler::new(),
 			minerals: vec![0; Mineral::count()],
@@ -29,21 +33,26 @@ impl Game {
 			tick: 0,
 		};
 
-		ret.world.add_machine((32, 32), MachineType::Spawn);
+		ret.world.add_machine((mid, mid), MachineType::Spawn);
 		for i in 1..4 {
-			ret.world.set((32 + i, 32), Material::Platform);
-			ret.world.set((32 + 3, 32 + i), Material::Platform);
+			ret.world.set((mid + i, mid), Material::Platform);
+			ret.world.set((mid + 3, mid + i), Material::Platform);
 		}
 
-		ret.world.add_machine((32 + 3, 32 + 3), MachineType::Lab);
+		ret.world.add_machine((mid + 3, mid + 3), MachineType::Lab);
 
-		ret.entities.add_worker((33, 33).into());
+		ret.entities.add_worker((mid + 2, mid + 2).into());
 
 		// TODO: <temp>
 		ret.minerals[Mineral::Crystal.num()] = 10;
-		ret.entities
-			.add_item((490.0, 490.0).into(), Mineral::Crystal);
-		ret.entities.add_item((480.0, 490.0).into(), Mineral::Ore);
+		ret.entities.add_item(
+			((mid - 2) as f32 * 16.0 + 5.0, (mid - 2) as f32 * 16.0 + 5.0).into(),
+			Mineral::Crystal,
+		);
+		ret.entities.add_item(
+			((mid - 2) as f32 * 16.0, (mid - 2) as f32 * 16.0 + 5.0).into(),
+			Mineral::Ore,
+		);
 		// </temp>
 
 		ret
@@ -55,6 +64,13 @@ impl Game {
 	}
 
 	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
+		if Game::time() == 0.0 {
+			self.mouse.set_center(
+				TilePos::new(self.world.width() / 2, self.world.height() / 2).into(),
+				GamePos::new(backend.get_width() as f32, backend.get_height() as f32),
+			);
+		}
+
 		self.update_carry += delta_time;
 		if self.update_carry >= self.update_interval {
 			self.tick += 1;
@@ -144,17 +160,6 @@ impl Game {
 					pos: top_left,
 					size: bottom_right - top_left,
 				};
-				crate::log!("{:?}", hitbox);
-				crate::log!("{:?}", self.entities.workers().next().unwrap().hitbox());
-				crate::log!(
-					"{:?}",
-					self.entities
-						.workers()
-						.next()
-						.unwrap()
-						.hitbox()
-						.intersects(hitbox)
-				);
 
 				let selection = self
 					.entities
@@ -172,6 +177,10 @@ impl Game {
 	pub fn on_key_press(&mut self, code: Option<KeyCode>, shift: ButtonState, ctrl: ButtonState) {
 		self.mouse.set_shift(shift);
 		self.mouse.set_ctrl(ctrl);
+
+		if code == Some(KeyCode::Letter('h')) {
+			self.world.toggle_debug_mode();
+		}
 	}
 
 	pub fn get_mineral(&self, mineral: Mineral) -> usize {

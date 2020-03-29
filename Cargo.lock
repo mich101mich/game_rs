@@ -99,7 +99,7 @@ dependencies = [
 [[package]]
 name = "hierarchical_pathfinding"
 version = "0.3.4"
-source = "git+https://github.com/mich101mich/hierarchical_pathfinding#76ec3370586b634815032c82375cfb5c145d1802"
+source = "git+https://github.com/mich101mich/hierarchical_pathfinding#907fd6274e2d02168348de29ff0abad39828bf2d"
 dependencies = [
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
