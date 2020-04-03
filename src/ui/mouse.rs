@@ -102,6 +102,9 @@ impl Mouse {
 	pub fn screen_to_world(&self, pos: GamePos) -> GamePos {
 		pos / self.scale - self.offset
 	}
+	pub fn world_to_screen(&self, pos: GamePos) -> GamePos {
+		(pos + self.offset) * self.scale
+	}
 
 	pub fn draw(&self, backend: &mut Backend) {
 		let pos = self.pos_world();

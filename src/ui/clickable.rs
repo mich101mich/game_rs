@@ -1,11 +1,9 @@
-use crate::{
-	entity::{ItemID, WorkerID},
-	world::GamePos,
-};
+use crate::world::GamePos;
 
 pub trait Clickable {
 	fn hitbox(&self) -> Hitbox;
-	fn context_menu(&self) -> Vec<(usize, String)>;
+	fn context_menu(&self) -> Option<Vec<(usize, String)>>;
+	fn on_context_clicked(&mut self, item: usize) -> bool;
 
 	fn intersects<O: Clickable>(&self, other: &O) -> bool {
 		self.hitbox().intersects(other.hitbox())
@@ -13,11 +11,6 @@ pub trait Clickable {
 	fn contains(&self, point: GamePos) -> bool {
 		self.hitbox().contains(point)
 	}
-}
-
-pub enum Clicked {
-	Worker(WorkerID),
-	Item(ItemID),
 }
 
 #[derive(Debug, Clone, Copy)]

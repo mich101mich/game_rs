@@ -30,6 +30,7 @@ pub struct Backend<'a> {
 	font: Font,
 	assets: Vec<Vec<Sprite<'a>>>,
 	background: RenderTexture,
+	view: View,
 }
 
 impl<'a> BackendStyle for Backend<'a> {
@@ -45,20 +46,21 @@ impl<'a> BackendStyle for Backend<'a> {
 		)
 		.unwrap();
 
-		let mut video_mode: VideoMode = (640, 480).into();
-		let mut style: window::Style = Default::default();
-		if let Some(mode) = VideoMode::fullscreen_modes().first() {
-			video_mode = *mode;
-			style = window::Style::FULLSCREEN;
-		}
-
 		let mut backend = Backend {
-			window: RenderWindow::new(video_mode, "game", style, &Default::default()),
+			window: RenderWindow::new(
+				VideoMode::desktop_mode(),
+				"game",
+				Default::default(),
+				&Default::default(),
+			),
 			font: Font::from_memory(include_bytes!("../../assets/consola.ttf"))
 				.expect("Unable to load Font"),
 			assets: Vec::new(),
 			background,
+			view: View::default(),
 		};
+
+		game.resize(&backend);
 
 		{
 			let rows = image.size().y as usize / TILE_SIZE;
@@ -105,9 +107,15 @@ impl<'a> BackendStyle for Backend<'a> {
 					KeyReleased { ctrl, shift, .. } => {
 						game.on_key_press(None, shift.into(), ctrl.into());
 					}
-					Resized { width, height } => backend.window.set_view(&View::from_rect(
-						&FloatRect::new(0.0, 0.0, width as f32, height as f32),
-					)),
+					Resized { width, height } => {
+						backend.window.set_view(&View::from_rect(&FloatRect::new(
+							0.0,
+							0.0,
+							width as f32,
+							height as f32,
+						)));
+						game.resize(&backend);
+					}
 					MouseWheelScrolled { delta, .. } => {
 						game.on_mouse_event(ui::MouseEvent::Scroll(-delta))
 					}
@@ -135,14 +143,14 @@ impl<'a> BackendStyle for Backend<'a> {
 			}
 
 			let mouse = &game.mouse;
-			let view = View::from_rect(&FloatRect::new(
+			backend.view = View::from_rect(&FloatRect::new(
 				-mouse.offset().x,
 				-mouse.offset().y,
 				backend.get_width() as f32 / mouse.scale(),
 				backend.get_height() as f32 / mouse.scale(),
 			));
 
-			backend.window.set_view(&view);
+			backend.window.set_view(&backend.view);
 
 			game.draw(&mut backend, clock.restart().as_seconds());
 
@@ -162,6 +170,19 @@ impl<'a> BackendStyle for Backend<'a> {
 
 	fn fill(&mut self, color: Colors) {
 		self.window.clear(&color.into());
+	}
+
+	fn absolute_mode(&mut self, on: bool) {
+		if on {
+			self.window.set_view(&View::from_rect(&FloatRect::new(
+				0.0,
+				0.0,
+				self.get_width() as f32,
+				self.get_height() as f32,
+			)));
+		} else {
+			self.window.set_view(&self.view);
+		}
 	}
 
 	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Colors) {

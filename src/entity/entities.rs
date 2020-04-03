@@ -1,10 +1,15 @@
 use super::*;
 use crate::{
-	ui::{Clickable, Clicked},
+	ui::Clickable,
 	world::{GamePos, Mineral, TilePos},
 	Backend,
 };
 use vec_map::VecMap;
+
+pub enum Entity {
+	Worker(WorkerID),
+	Item(ItemID),
+}
 
 pub struct Entities {
 	workers: VecMap<Worker>,
@@ -58,16 +63,26 @@ impl Entities {
 		self.items.insert(id.into(), Item::new(id, pos, mineral));
 	}
 
-	pub fn entity_at(&self, pos: GamePos) -> Option<Clicked> {
+	pub fn remove_worker(&mut self, id: WorkerID) {
+		self.workers.remove(id.into());
+	}
+	pub fn remove_job(&mut self, id: JobID) {
+		self.jobs.remove(id.into());
+	}
+	pub fn remove_item(&mut self, id: ItemID) {
+		self.items.remove(id.into());
+	}
+
+	pub fn entity_at(&self, pos: GamePos) -> Option<Entity> {
 		self.items
 			.values()
 			.find(|i| i.contains(pos))
-			.map(|i| Clicked::Item(i.id))
+			.map(|i| Entity::Item(i.id))
 			.or_else(|| {
 				self.workers
 					.values()
 					.find(|w| w.contains(pos))
-					.map(|w| Clicked::Worker(w.id))
+					.map(|w| Entity::Worker(w.id))
 			})
 	}
 

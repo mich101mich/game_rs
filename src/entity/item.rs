@@ -56,7 +56,10 @@ impl Clickable for Item {
 			radius: Item::RADIUS,
 		}
 	}
-	fn context_menu(&self) -> std::vec::Vec<(usize, String)> {
-		unimplemented!()
+	fn context_menu(&self) -> Option<Vec<(usize, String)>> {
+		None
+	}
+	fn on_context_clicked(&mut self, item: usize) -> bool {
+		panic!("Items don't have a Context Menu, but {} was clicked", item)
 	}
 }

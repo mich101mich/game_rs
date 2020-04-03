@@ -1,14 +1,13 @@
-mod mouse;
-pub use mouse::*;
-
-mod key;
-pub use key::KeyCode;
-
-mod menu;
-pub use menu::*;
-
+mod button;
 mod clickable;
+mod key;
+mod menu;
+mod mouse;
+pub use button::*;
 pub use clickable::*;
+pub use key::KeyCode;
+pub use menu::*;
+pub use mouse::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonState {

@@ -16,6 +16,7 @@ pub struct Worker {
 	pub plan: Vec<JobID>,
 	pub next_target: Option<(TilePos, Path)>,
 	pub move_progress: Option<(TilePos, usize, usize)>,
+	pub mark_killed: bool,
 	item: Option<Item>,
 }
 
@@ -27,6 +28,7 @@ impl Worker {
 			plan: vec![],
 			next_target: None,
 			move_progress: None,
+			mark_killed: false,
 			item: None,
 		}
 	}
@@ -56,7 +58,19 @@ impl Clickable for Worker {
 			size: GamePos::new(12.0, 12.0),
 		}
 	}
-	fn context_menu(&self) -> std::vec::Vec<(usize, String)> {
-		unimplemented!()
+
+	fn context_menu(&self) -> Option<Vec<(usize, String)>> {
+		Some(vec![(CONTEXT_KILL, String::from("kill"))])
+	}
+	fn on_context_clicked(&mut self, item: usize) -> bool {
+		match item {
+			CONTEXT_KILL => {
+				self.mark_killed = true;
+				true
+			}
+			x => panic!("Invalid Context Menu Item on Worker: {}", x),
+		}
 	}
 }
+
+const CONTEXT_KILL: usize = 0;

@@ -23,6 +23,8 @@ pub enum Colors {
 	Node,
 	Highlight,
 	Cursor,
+	Button,
+	Black,
 }
 impl Colors {
 	pub fn num(self) -> i32 {
@@ -41,7 +43,8 @@ impl From<Colors> for Color {
 			Colors::Node => Color::rgba(255, 0, 0, 150),
 			Colors::Highlight => Color::rgb(255, 0, 0),
 			Colors::Cursor => Color::rgba(180, 180, 255, 180),
-			_ => Color::rgb(0, 0, 0),
+			Colors::Button => Color::rgb(128, 128, 128),
+			Colors::Black => Color::rgb(0, 0, 0),
 		}
 	}
 }
@@ -56,6 +59,8 @@ pub trait BackendStyle {
 
 	/// Fill the entire Screen with a single Color
 	fn fill(&mut self, color: Colors);
+
+	fn absolute_mode(&mut self, on: bool);
 
 	/// Draw a Line from `start` to `end`
 	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Colors);

@@ -19,6 +19,18 @@ impl Scheduler {
 	}
 
 	pub fn update(&mut self, entities: &mut Entities, world: &mut World) {
+		let mut marked_kill = vec![];
+		for worker in entities.workers() {
+			if worker.mark_killed {
+				marked_kill.push(worker.id);
+			}
+		}
+		for id in marked_kill {
+			entities.remove_worker(id);
+			self.known_workers.remove(&id);
+			// TODO: remove Worker
+		}
+
 		for worker in entities.workers_mut() {
 			// update between-tile movement
 			if let Some((next_pos, mut progress, total)) = worker.move_progress.take() {

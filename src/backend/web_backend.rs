@@ -135,12 +135,16 @@ fn resize() {
 	backend.canvas.set_width(width);
 	backend.canvas.set_height(height);
 
+	backend
+		.ctx
+		.set_font(&format!("{}px consolas", TEXT_SIZE as f32 + 0.3));
+	backend.ctx.set_text_baseline(TextBaseline::Top);
 	js! {
 		@{ &backend.ctx }.imageSmoothingEnabled = false;
 		@{ &backend.bg }.imageSmoothingEnabled = false;
 	}
 
-	game().world.set_dirty();
+	game().resize(&backend);
 }
 
 pub struct Backend {
@@ -152,6 +156,14 @@ pub struct Backend {
 	width: u32,
 	height: u32,
 	mouse: (i32, i32),
+}
+impl Backend {
+	fn set_fill_style(&self, color: Colors) {
+		js! { @{ &self.ctx }.fillStyle = COLOR[@{ color.num() }] }
+	}
+	fn set_stroke_style(&self, color: Colors) {
+		js! { @{ &self.ctx }.strokeStyle = COLOR[@{ color.num() }] }
+	}
 }
 impl BackendStyle for Backend {
 	fn start(game: Game) {
@@ -166,6 +178,8 @@ impl BackendStyle for Backend {
 				@{ Color::from(Colors::Node).to_css() },
 				@{ Color::from(Colors::Highlight).to_css() },
 				@{ Color::from(Colors::Cursor).to_css() },
+				@{ Color::from(Colors::Button).to_css() },
+				@{ Color::from(Colors::Black).to_css() },
 			];
 		}
 
@@ -225,16 +239,6 @@ impl BackendStyle for Backend {
 			GAME = Some(game);
 		}
 
-		{
-			let ctx = &backend().ctx;
-			ctx.set_font(&format!("{}px consolas", TEXT_SIZE as f32 + 0.3));
-			ctx.set_text_baseline(TextBaseline::Top);
-			js! {
-				@{ &backend().ctx }.imageSmoothingEnabled = false;
-				@{ &backend().bg }.imageSmoothingEnabled = false;
-			}
-		}
-
 		window().add_event_listener(on_resize);
 		window().add_event_listener(on_mouse_up);
 		window().add_event_listener(on_mouse_down);
@@ -257,21 +261,27 @@ impl BackendStyle for Backend {
 	}
 
 	fn fill(&mut self, color: Colors) {
-		self.ctx.save();
-		self.ctx.set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-		let color = color.num();
-		js! { @{ &self.ctx }.fillStyle = COLOR[@{ color }] }
+		self.absolute_mode(true);
+		self.set_fill_style(color);
 		self.ctx
 			.fill_rect(0.0, 0.0, self.width as f64, self.height as f64);
-		self.ctx.restore();
+		self.absolute_mode(false);
+	}
+
+	fn absolute_mode(&mut self, on: bool) {
+		if on {
+			self.ctx.save();
+			self.ctx.set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+		} else {
+			self.ctx.restore();
+		}
 	}
 
 	fn draw_line<T: Into<GamePos>, T2: Into<GamePos>>(&mut self, start: T, end: T2, color: Colors) {
 		let (x, y) = start.into().into();
 		let end: (f64, f64) = end.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.strokeStyle = COLOR[@{ color }] }
+		self.set_stroke_style(color);
 		self.ctx.set_line_width(1.0 / game().mouse.scale() as f64);
 		self.ctx.begin_path();
 		self.ctx.move_to(x, y);
@@ -283,8 +293,7 @@ impl BackendStyle for Backend {
 		let (x, y) = pos.into().into();
 		let size: (f64, f64) = size.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.fillStyle = COLOR[@{ color }] }
+		self.set_fill_style(color);
 		self.ctx.fill_rect(x, y, size.0, size.1);
 	}
 	fn stroke_rect<T: Into<GamePos>, T2: Into<GamePos>>(
@@ -297,8 +306,7 @@ impl BackendStyle for Backend {
 		let (x, y) = pos.into().into();
 		let size: (f64, f64) = size.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.strokeStyle = COLOR[@{ color }] }
+		self.set_stroke_style(color);
 		self.ctx.set_line_width(line_width as f64);
 		self.ctx.stroke_rect(x, y, size.0, size.1);
 	}
@@ -306,8 +314,7 @@ impl BackendStyle for Backend {
 	fn fill_circle<T: Into<GamePos>>(&mut self, pos: T, radius: f32, color: Colors) {
 		let (x, y) = pos.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.fillStyle = COLOR[@{ color }] }
+		self.set_fill_style(color);
 		self.ctx.begin_path();
 		self.ctx
 			.arc(x, y, radius as f64, 0.0, 2.0 * std::f64::consts::PI, false);
@@ -322,8 +329,7 @@ impl BackendStyle for Backend {
 	) {
 		let (x, y) = pos.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.strokeStyle = COLOR[@{ color }] }
+		self.set_stroke_style(color);
 		self.ctx.set_line_width(line_width as f64);
 		self.ctx.begin_path();
 		self.ctx
@@ -334,8 +340,7 @@ impl BackendStyle for Backend {
 	fn draw_text<T: Into<GamePos>>(&mut self, text: &str, pos: T, color: Colors) {
 		let (x, y) = pos.into().into();
 
-		let color = color.num();
-		js! { @{ &self.ctx }.fillStyle = COLOR[@{ color }] }
+		self.set_fill_style(color);
 		self.ctx.fill_text(text, x, y + 4.0, None);
 	}
 
@@ -359,7 +364,6 @@ impl BackendStyle for Backend {
 	}
 
 	fn clear_background(&mut self) {
-		js! { @{ &self.ctx }.fillStyle = "black" }
 		self.bg.fill_rect(
 			0.0,
 			0.0,

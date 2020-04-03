@@ -63,14 +63,16 @@ impl Game {
 		unsafe { TIME }
 	}
 
-	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
-		if Game::time() == 0.0 {
-			self.mouse.set_center(
-				TilePos::new(self.world.width() / 2, self.world.height() / 2).into(),
-				GamePos::new(backend.get_width() as f32, backend.get_height() as f32),
-			);
-		}
+	pub fn resize(&mut self, backend: &Backend) {
+		self.mouse.set_center(
+			TilePos::new(self.world.width() / 2, self.world.height() / 2).into(),
+			GamePos::new(backend.get_width() as f32, backend.get_height() as f32),
+		);
+		self.menu.set_pos(backend.get_width() as f32);
+		self.world.set_dirty();
+	}
 
+	pub fn draw(&mut self, backend: &mut Backend, delta_time: f32) {
 		self.update_carry += delta_time;
 		if self.update_carry >= self.update_interval {
 			self.tick += 1;
@@ -103,22 +105,32 @@ impl Game {
 		match self.mouse.on_event(event) {
 			Click(pos) => {
 				let w_pos: TilePos = pos.into();
-				self.menu.selection = if let Some(entity) = self.entities.entity_at(pos) {
+				let selection = if self
+					.menu
+					.process_click(self.mouse.world_to_screen(pos), &mut self.entities)
+				{
+					return;
+				} else if let Some(entity) = self.entities.entity_at(pos) {
 					match entity {
-						Clicked::Item(id) => Selection::Item(id),
-						Clicked::Worker(id) => Selection::Workers(std::iter::once(id).collect()),
+						Entity::Item(id) => Selection::Item(id),
+						Entity::Worker(id) => Selection::Workers(std::iter::once(id).collect()),
 					}
 				} else if self.world.machine_at(w_pos).is_some() {
 					Selection::Machine(w_pos)
 				} else if self.world.is_visible(w_pos) {
 					// TODO: <temp>
-					let mut w = self.entities.workers_mut().next().unwrap();
+					let mut w = self
+						.entities
+						.workers_mut()
+						.next()
+						.expect("You killed my Worker :/");
 					w.next_target = self.world.path(w.pos, w_pos).map(|path| (w_pos, path));
 					// </temp>
 					Selection::Air(w_pos)
 				} else {
 					Selection::Nothing
 				};
+				self.menu.set_selection(selection, &self.entities);
 			}
 			Brush(pos, radius, append) => {
 				let tl: TilePos = (pos - GamePos::new(radius, radius)).into();
@@ -136,24 +148,21 @@ impl Game {
 					})
 					.filter(|&tile| world.is_visible(tile) && world.is_solid(tile));
 
-				if !append {
-					self.menu.selection = Selection::Walls(HashSet::default());
-				}
-
-				let selection = match &mut self.menu.selection {
-					Selection::Walls(sel) => sel,
-					s => {
-						*s = Selection::Walls(HashSet::default());
-						match s {
-							Selection::Walls(sel) => sel,
-							_ => unreachable!(),
-						}
+				let mut selection = if append {
+					match self.menu.take_selection() {
+						Selection::Walls(sel) => sel,
+						_ => HashSet::default(),
 					}
+				} else {
+					HashSet::default()
 				};
 
 				for tile in tiles {
 					selection.insert(tile);
 				}
+
+				self.menu
+					.set_selection(Selection::Walls(selection), &self.entities);
 			}
 			Area(top_left, bottom_right) => {
 				let hitbox = Hitbox::Rect {
@@ -168,7 +177,8 @@ impl Game {
 					.map(|w| w.id)
 					.collect();
 
-				self.menu.selection = Selection::Workers(selection);
+				self.menu
+					.set_selection(Selection::Workers(selection), &self.entities);
 			}
 			NoChange => (),
 		}
