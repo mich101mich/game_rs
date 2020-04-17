@@ -59,8 +59,8 @@ impl Clickable for Worker {
 		}
 	}
 
-	fn context_menu(&self) -> Option<Vec<(usize, String)>> {
-		Some(vec![(CONTEXT_KILL, String::from("kill"))])
+	fn context_menu(&self) -> Box<dyn Iterator<Item = &(usize, &'static str)>> {
+		Box::new([(CONTEXT_KILL, "kill")].iter())
 	}
 	fn on_context_clicked(&mut self, item: usize) -> bool {
 		match item {

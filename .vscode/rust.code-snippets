@@ -1,0 +1,7 @@
+{
+	"print variable": {
+		"prefix": "pv",
+		"body": "crate::log!(\"$1: {:?}\", $1);",
+		"description": "prints a variable with its name",
+	}
+}

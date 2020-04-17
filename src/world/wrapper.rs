@@ -92,6 +92,84 @@ impl World {
 		self.grid.set_visible(pos)
 	}
 
+	const AIR_PLACE_PLATFORM: usize = 0;
+	const SPAWN_NEW_WORKER: usize = 0;
+	const TILE_REMOVE: usize = 99;
+	pub fn context_menu_tile(
+		&self,
+		tile: TilePos,
+	) -> Box<dyn Iterator<Item = &(usize, &'static str)>> {
+		use Material::*;
+		match self[tile] {
+			Air => Box::new([(Self::AIR_PLACE_PLATFORM, "Place Platform")].iter()),
+			Bedrock => panic!("Bedrock was selected"),
+			Granite | Rock | Ore | Crystal => Box::new([(Self::TILE_REMOVE, "Remove")].iter()),
+			Debris => Box::new([(Self::TILE_REMOVE, "Remove")].iter()),
+			Platform => Box::new([(Self::TILE_REMOVE, "Remove")].iter()),
+			Machine => match self.machine_at(tile).unwrap().machine_type {
+				MachineType::Spawn => Box::new(
+					[
+						(Self::SPAWN_NEW_WORKER, "Spawn Worker"),
+						(Self::TILE_REMOVE, "Destroy"),
+					]
+					.iter(),
+				),
+				MachineType::Lab => {
+					Box::new([(0, "TODO: Research"), (Self::TILE_REMOVE, "Destroy")].iter())
+				}
+				_ => Box::new([(Self::TILE_REMOVE, "Remove")].iter()),
+			},
+		}
+	}
+	pub fn context_menu_walls(
+		&self,
+		_tiles: &HashSet<TilePos>,
+	) -> Box<dyn Iterator<Item = &(usize, &'static str)>> {
+		Box::new([(Self::TILE_REMOVE, "Remove")].iter())
+	}
+
+	pub fn context_click_tile(&mut self, tile: TilePos, id: usize) -> bool {
+		if id == Self::TILE_REMOVE {
+			self.set(tile, Air);
+			return true;
+		}
+
+		use Material::*;
+		match self[tile] {
+			Air => match id {
+				Self::AIR_PLACE_PLATFORM => {
+					self.add_machine(
+						tile,
+						MachineType::ConstructionSite(Box::new(MachineType::Platform)),
+					);
+					true
+				}
+				x => panic!("Invalid Context Menu Item on Air: {}", x),
+			},
+			Bedrock => panic!("Bedrock was selected"),
+			Machine => match &self.machine_at(tile).unwrap().machine_type {
+				MachineType::Spawn => match id {
+					Self::SPAWN_NEW_WORKER => false, // TODO: spawn Worker
+					x => panic!("Invalid Context Menu Item on Spawn: {}", x),
+				},
+				MachineType::Lab => false, // TODO: Research
+				m => panic!("Invalid Context Menu Item on {:?}: {}", m, id),
+			},
+			m => panic!("Invalid Context Menu Item on {:?}: {}", m, id),
+		}
+	}
+	pub fn context_click_walls(&mut self, tiles: &HashSet<TilePos>, id: usize) -> bool {
+		match id {
+			Self::TILE_REMOVE => {
+				for tile in tiles {
+					self.set(*tile, Material::Air);
+				}
+				true
+			}
+			x => panic!("Invalid Context Menu Item on Walls: {}", x),
+		}
+	}
+
 	pub fn draw(&mut self, backend: &mut crate::Backend) {
 		use crate::{BackendStyle, Colors};
 		use Material::{Machine, Platform};
@@ -176,14 +254,16 @@ impl World {
 	}
 
 	pub fn update(&mut self, spawn_has_power: bool) {
-		let mut source_change = vec![];
-		for machine in self.machines.values() {
-			if let Some(change) = machine.power_source_changed(self) {
-				source_change.push((machine.pos, change));
+		{
+			let mut source_change = vec![];
+			for machine in self.machines.values() {
+				if let Some(change) = machine.power_source_changed(self) {
+					source_change.push((machine.pos, change));
+				}
 			}
-		}
-		for (pos, change) in source_change {
-			self.machine_at_mut(pos).unwrap().set_power_source(change);
+			for (pos, change) in source_change {
+				self.machine_at_mut(pos).unwrap().set_power_source(change);
+			}
 		}
 		for machine in self.machines.values_mut() {
 			machine.update(spawn_has_power);

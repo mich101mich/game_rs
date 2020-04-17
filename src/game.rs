@@ -102,21 +102,22 @@ impl Game {
 
 	pub fn on_mouse_event(&mut self, event: MouseEvent) {
 		use SelectionInfo::*;
-		match self.mouse.on_event(event) {
+		let new_selection = match self.mouse.on_event(event) {
 			Click(pos) => {
 				let w_pos: TilePos = pos.into();
-				let selection = if self
-					.menu
-					.process_click(self.mouse.world_to_screen(pos), &mut self.entities)
-				{
-					return;
+				if self.menu.process_click(
+					self.mouse.world_to_screen(pos),
+					&mut self.entities,
+					&mut self.world,
+				) {
+					None
 				} else if let Some(entity) = self.entities.entity_at(pos) {
-					match entity {
+					Some(match entity {
 						Entity::Item(id) => Selection::Item(id),
 						Entity::Worker(id) => Selection::Workers(std::iter::once(id).collect()),
-					}
+					})
 				} else if self.world.machine_at(w_pos).is_some() {
-					Selection::Machine(w_pos)
+					Some(Selection::Machine(w_pos))
 				} else if self.world.is_visible(w_pos) {
 					// TODO: <temp>
 					let mut w = self
@@ -126,11 +127,10 @@ impl Game {
 						.expect("You killed my Worker :/");
 					w.next_target = self.world.path(w.pos, w_pos).map(|path| (w_pos, path));
 					// </temp>
-					Selection::Air(w_pos)
+					Some(Selection::Air(w_pos))
 				} else {
-					Selection::Nothing
-				};
-				self.menu.set_selection(selection, &self.entities);
+					Some(Selection::Nothing)
+				}
 			}
 			Brush(pos, radius, append) => {
 				let tl: TilePos = (pos - GamePos::new(radius, radius)).into();
@@ -161,8 +161,11 @@ impl Game {
 					selection.insert(tile);
 				}
 
-				self.menu
-					.set_selection(Selection::Walls(selection), &self.entities);
+				Some(if selection.is_empty() {
+					Selection::Nothing
+				} else {
+					Selection::Walls(selection)
+				})
 			}
 			Area(top_left, bottom_right) => {
 				let hitbox = Hitbox::Rect {
@@ -170,17 +173,24 @@ impl Game {
 					size: bottom_right - top_left,
 				};
 
-				let selection = self
+				let selection: HashSet<WorkerID> = self
 					.entities
 					.workers()
 					.filter(|w| hitbox.intersects(w.hitbox()))
 					.map(|w| w.id)
 					.collect();
 
-				self.menu
-					.set_selection(Selection::Workers(selection), &self.entities);
+				Some(if selection.is_empty() {
+					Selection::Nothing
+				} else {
+					Selection::Workers(selection)
+				})
 			}
-			NoChange => (),
+			NoChange => None,
+		};
+		if let Some(selection) = new_selection {
+			self.menu
+				.set_selection(selection, &self.entities, &self.world);
 		}
 	}
 

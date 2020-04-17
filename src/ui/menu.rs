@@ -2,7 +2,7 @@ use crate::{
 	backend::TEXT_SIZE,
 	entity::{Entities, ItemID, WorkerID},
 	ui::{Button, Clickable},
-	world::{GamePos, TilePos},
+	world::{GamePos, TilePos, World},
 	Backend, BackendStyle, Colors, HashSet,
 };
 
@@ -59,26 +59,24 @@ impl Menu {
 		}
 	}
 
-	pub fn set_selection(&mut self, selection: Selection, entities: &Entities) {
+	pub fn set_selection(&mut self, selection: Selection, entities: &Entities, world: &World) {
 		self.selection = selection;
 		self.context_menu = match &self.selection {
-			Nothing => None,
+			Nothing => Box::new(std::iter::empty()),
 			Workers(workers) => workers
 				.iter()
 				.next()
-				.and_then(|id| entities.worker(*id).context_menu()),
+				.map(|id| entities.worker(*id).context_menu())
+				.unwrap_or_else(|| Box::new(std::iter::empty())),
 			Item(id) => entities.item(*id).context_menu(),
-			Walls(_tiles) => None, // TODO: hand over to World
-			Machine(_pos) => None, // TODO: hand over to World
-			Air(_pos) => None,     // TODO: hand over to World
+			Walls(tiles) => world.context_menu_walls(tiles),
+			Machine(pos) | Air(pos) => world.context_menu_tile(*pos),
 		}
-		.unwrap_or_else(|| vec![])
-		.into_iter()
 		.enumerate()
-		.map(|(i, (identifier, text))| {
+		.map(|(i, &(identifier, text))| {
 			Button::new(
 				identifier,
-				text,
+				String::from(text),
 				GamePos::new(self.pos, 5.0 + i as f32 * (TEXT_SIZE as f32 + 3.0)),
 				GamePos::new(self.width, TEXT_SIZE as f32 + 2.0),
 			)
@@ -86,10 +84,15 @@ impl Menu {
 		.collect();
 	}
 
-	pub fn process_click(&mut self, pos: GamePos, entities: &mut Entities) -> bool {
+	pub fn process_click(
+		&mut self,
+		pos: GamePos,
+		entities: &mut Entities,
+		world: &mut World,
+	) -> bool {
 		for button in self.context_menu.iter() {
 			if button.contains(pos) {
-				match &self.selection {
+				let clear = match &self.selection {
 					Nothing => panic!("Why was there a Button when nothing is selected??"),
 					Workers(workers) => {
 						let mut clear = false;
@@ -99,18 +102,17 @@ impl Menu {
 								.on_context_clicked(button.identifier)
 								|| clear;
 						}
-						if clear {
-							self.set_selection(Selection::Nothing, entities);
-						}
+						clear
 					}
-					Item(id) => {
-						if entities.item_mut(*id).on_context_clicked(button.identifier) {
-							self.set_selection(Selection::Nothing, entities);
-						}
-					}
-					Walls(_tiles) => (), // TODO: hand over to World
-					Machine(_pos) => (), // TODO: hand over to World
-					Air(_pos) => (),     // TODO: hand over to World
+					Item(id) => entities.item_mut(*id).on_context_clicked(button.identifier),
+					Walls(tiles) => world.context_click_walls(tiles, button.identifier),
+					Machine(pos) | Air(pos) => world.context_click_tile(*pos, button.identifier),
+				};
+				if clear {
+					self.set_selection(Selection::Nothing, entities, world);
+				} else {
+					let sel = self.take_selection();
+					self.set_selection(sel, entities, world);
 				}
 				return true;
 			}

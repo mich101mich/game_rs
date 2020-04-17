@@ -1,4 +1,5 @@
 use super::{Dir, TilePos, World, TILE_SIZE};
+use crate::HashSet;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum MachineType {
@@ -24,7 +25,7 @@ impl MachineType {
 pub struct Machine {
 	pub pos: TilePos,
 	pub machine_type: MachineType,
-	power_source: Option<(TilePos, Dir)>,
+	power_source: Option<Dir>,
 	power: bool,
 	cooldown: Option<usize>,
 }
@@ -56,7 +57,8 @@ impl Machine {
 	}
 
 	pub fn update(&mut self, spawn_has_power: bool) {
-		self.power = self.has_power_source() && spawn_has_power;
+		self.power = matches!(self.machine_type, ConstructionSite(..))
+			|| (self.has_power_source() && spawn_has_power);
 	}
 
 	pub fn remove(&mut self) {}
@@ -68,39 +70,37 @@ impl Machine {
 	pub fn has_power_source(&self) -> bool {
 		self.is_spawn() || self.power_source.is_some()
 	}
-	pub fn get_power_source(&self) -> Option<TilePos> {
-		if self.is_spawn() {
-			Some(self.pos)
-		} else {
-			self.power_source.map(|(pos, _)| pos)
-		}
-	}
-	pub fn set_power_source(&mut self, source: Option<(TilePos, Dir)>) {
+	pub fn set_power_source(&mut self, source: Option<Dir>) {
 		self.power_source = source;
 	}
-	pub fn find_power_source(&self, world: &World) -> Option<(TilePos, Dir)> {
-		let mut sources = Dir::all().filter_map(|dir| {
-			world
-				.tile_in_dir(self.pos, dir)
-				.and_then(|tile| world.machine_at(tile))
-				.and_then(Machine::get_power_source)
-				.map(|spawn| (spawn, dir))
-		});
-		sources.next()
+	pub fn find_power_source(&self, world: &World) -> Option<Dir> {
+		Dir::all().find_map(|dir| {
+			let mut pos = world.tile_in_dir(self.pos, dir)?;
+			let mut seen = HashSet::default();
+			while seen.insert(pos) {
+				let machine = world.machine_at(pos)?;
+				if machine.is_spawn() {
+					return Some(dir);
+				}
+				pos = world.tile_in_dir(machine.pos, machine.power_source?)?;
+			}
+			None
+		})
 	}
 
 	#[allow(clippy::option_option)]
-	pub fn power_source_changed(&self, world: &World) -> Option<Option<(TilePos, Dir)>> {
+	pub fn power_source_changed(&self, world: &World) -> Option<Option<Dir>> {
 		if self.is_spawn() {
 			return None;
 		}
 		let mut source = self.power_source;
-		if let Some((_, spawn_dir)) = source {
-			source = world
-				.tile_in_dir(self.pos, spawn_dir)
-				.and_then(|p| world.machine_at(p))
-				.and_then(Machine::get_power_source)
-				.map(|spawn_pos| (spawn_pos, spawn_dir));
+		if !source
+			.and_then(|dir| world.tile_in_dir(self.pos, dir))
+			.and_then(|p| world.machine_at(p))
+			.map(|m| m.has_power_source())
+			.unwrap_or(false)
+		{
+			source = None
 		}
 		if source.is_none() {
 			source = self.find_power_source(world);

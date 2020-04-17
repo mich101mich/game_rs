@@ -2,7 +2,10 @@ use crate::world::GamePos;
 
 pub trait Clickable {
 	fn hitbox(&self) -> Hitbox;
-	fn context_menu(&self) -> Option<Vec<(usize, String)>>;
+
+	fn context_menu(&self) -> Box<dyn Iterator<Item = &(usize, &'static str)>> {
+		Box::new(std::iter::empty())
+	}
 	fn on_context_clicked(&mut self, item: usize) -> bool;
 
 	fn intersects<O: Clickable>(&self, other: &O) -> bool {

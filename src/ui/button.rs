@@ -37,9 +37,6 @@ impl<T> Clickable for Button<T> {
 			size: self.size,
 		}
 	}
-	fn context_menu(&self) -> Option<Vec<(usize, String)>> {
-		None
-	}
 	fn on_context_clicked(&mut self, item: usize) -> bool {
 		panic!(
 			"Buttons don't have a Context Menu, but {} was clicked",
